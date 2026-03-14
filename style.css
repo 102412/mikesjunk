@@ -82,13 +82,11 @@ header nav ul li a:hover {
 
 #hero h2 {
   font-size: 2.5rem;
-  animation: slideIn 1s ease forwards;
 }
 
 #hero p {
   margin-top: 15px;
   font-size: 1.2rem;
-  animation: fadeIn 2s ease forwards;
 }
 
 #hero button {
@@ -235,15 +233,34 @@ footer {
   backdrop-filter: blur(10px);
 }
 
-/* Animations */
-@keyframes slideIn {
-  from { transform: translateY(-50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+/* Scroll-triggered animations */
+.scroll-fade {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease, transform 1s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.scroll-slide-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.scroll-slide-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.scroll-slide-up {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.scroll-in-view {
+  opacity: 1;
+  transform: translateX(0) translateY(0);
 }
 
 /* Media Queries for Mobile */
