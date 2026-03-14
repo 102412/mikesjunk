@@ -8,6 +8,13 @@ document.querySelectorAll('nav a').forEach(anchor => {
   });
 });
 
+// Mobile menu toggle
+const menuToggle = document.getElementById('menu-toggle');
+const navMenu = document.querySelector('header nav ul');
+menuToggle.addEventListener('click', () => {
+  navMenu.classList.toggle('show');
+});
+
 // Floating blobs movement on mouse move
 const blobs = document.querySelectorAll('.blobs .blob');
 document.addEventListener('mousemove', e => {
