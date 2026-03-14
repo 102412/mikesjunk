@@ -26,6 +26,36 @@ document.addEventListener('mousemove', e => {
   });
 });
 
+// Scroll-triggered animations
+const scrollElements = document.querySelectorAll('.scroll-fade, .scroll-slide-left, .scroll-slide-right, .scroll-slide-up');
+
+const elementInView = (el, offset = 0) => {
+  const elementTop = el.getBoundingClientRect().top;
+  return (
+    elementTop <= (window.innerHeight || document.documentElement.clientHeight) - offset
+  );
+};
+
+const displayScrollElement = (element) => {
+  element.classList.add('scroll-in-view');
+};
+
+const hideScrollElement = (element) => {
+  element.classList.remove('scroll-in-view');
+};
+
+const handleScrollAnimation = () => {
+  scrollElements.forEach(el => {
+    if (elementInView(el, 100)) {
+      displayScrollElement(el);
+    } 
+  })
+}
+
+window.addEventListener('scroll', () => {
+  handleScrollAnimation();
+});
+
 // Form submission (dummy)
 document.getElementById('contactForm').addEventListener('submit', e => {
   e.preventDefault();
