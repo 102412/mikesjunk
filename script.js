@@ -8,14 +8,14 @@ document.querySelectorAll('nav a').forEach(anchor => {
   });
 });
 
-// Floating boxes movement on mouse move
-const boxes = document.querySelectorAll('.floating-boxes .box');
+// Floating blobs movement on mouse move
+const blobs = document.querySelectorAll('.blobs .blob');
 document.addEventListener('mousemove', e => {
-  boxes.forEach((box, i) => {
-    const speed = (i + 1) * 0.05;
+  blobs.forEach((blob, i) => {
+    const speed = (i + 1) * 0.03;
     const x = (window.innerWidth / 2 - e.pageX) * speed;
     const y = (window.innerHeight / 2 - e.pageY) * speed;
-    box.style.transform = `translate(${x}px, ${y}px) rotate(${performance.now()/50}deg)`;
+    blob.style.transform = `translate(${x}px, ${y}px) scale(1.1)`;
   });
 });
 
