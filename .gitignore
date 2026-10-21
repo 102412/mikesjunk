@@ -1,0 +1,11 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+*.xcuserstate
+xcuserdata/
+DerivedData/
+Generated/
+*.xcodeproj/
+node_modules/
+.supabase/

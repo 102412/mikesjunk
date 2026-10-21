@@ -1,0 +1,12 @@
+{
+  "name": "xpres-backend-validation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test backend-tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "jpeg-js": "0.4.4"
+  }
+}

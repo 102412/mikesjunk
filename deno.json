@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "lock": "deno.lock",
+  "tasks": {
+    "check": "deno check supabase/functions/research/index.ts supabase/functions/account-delete/index.ts supabase/functions/media-upload/index.ts"
+  }
+}

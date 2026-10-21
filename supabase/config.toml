@@ -1,0 +1,24 @@
+project_id = "xpres-builders"
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+[db]
+port = 54322
+major_version = 17
+[auth]
+enabled = true
+site_url = "xpres://auth/callback"
+additional_redirect_urls = ["xpres://auth/callback"]
+minimum_password_length = 8
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+[functions.research]
+verify_jwt = true
+[functions.account-delete]
+verify_jwt = true
+[functions.media-upload]
+verify_jwt = true
