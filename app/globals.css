@@ -67,3 +67,23 @@ body::before { content:""; position:fixed; z-index:-2; inset:0; pointer-events:n
 .app-shell { background:radial-gradient(900px 500px at 85% -10%,rgba(116,255,237,.15),transparent 65%),radial-gradient(560px 440px at 10% 92%,rgba(254,129,209,.1),transparent 68%),linear-gradient(rgba(23,31,68,.48),rgba(23,31,68,.76)),var(--site-artwork); background-position:center; background-size:cover; background-attachment:fixed; }
 .landing-page { background:radial-gradient(900px 500px at 70% 6%,rgba(116,255,237,.16),transparent 68%),radial-gradient(700px 500px at 17% 44%,rgba(254,129,209,.1),transparent 70%),linear-gradient(rgba(23,31,68,.48),rgba(23,31,68,.76)),var(--site-artwork); background-position:center; background-size:cover; background-attachment:fixed; }
 @media (max-width:720px) { html,body::before,.operator-page,.app-shell,.landing-page { background-attachment:scroll; } }
+
+/* Navigation is intentionally quiet: a single stable blue blur over the live backdrop. */
+.command-nav,
+.command-nav.liquid-surface,
+.app-nav-inner,
+.app-nav-inner.liquid-surface {
+  background: rgba(34, 76, 145, .62);
+  border-color: rgba(183, 224, 255, .34);
+  backdrop-filter: blur(18px) saturate(118%);
+  -webkit-backdrop-filter: blur(18px) saturate(118%);
+  box-shadow: inset 0 1px rgba(255,255,255,.22), 0 14px 36px rgba(7,16,52,.28);
+  animation: none;
+}
+.command-nav::before,
+.command-nav::after,
+.app-nav-inner::before,
+.app-nav-inner::after {
+  content: none;
+  display: none;
+}
