@@ -1,56 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { ArrowRight, Boxes, CheckCircle2, Github, Sparkles, WandSparkles } from "lucide-react";
-import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, ChevronRight, Circle, Command, Play, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { emptyData, saveData, saveWorkspace } from "@/lib/storage";
+import type { WorkspaceConfig } from "@/lib/workspace-schema";
 
-const workspaceTypes = [
-  { title: "Shipping a product", copy: "See releases, customer work, and the next decision in one calm place.", tag: "Product OS" },
-  { title: "Running client work", copy: "Keep briefs, delivery dates, source links, and feedback from getting lost.", tag: "Client OS" },
-  { title: "Operating an AI team", copy: "Give reliability, documentation, incidents, and experiments a shared home.", tag: "AI OS" },
+type Transcript = { tone: "command" | "system" | "success"; text: string };
+const examples = [
+  "I’m launching \"Orbit\", a subscription web app. I need to see what to ship, keep product notes, customer signals, and connect my GitHub repo.",
+  "A client workspace for websites: deadlines, briefs, decisions, links, and the work I should do next.",
+  "An AI product control room for reliability, incidents, docs, and technical experiments.",
 ];
 
-function Artifact() {
-  const [split, setSplit] = useState(58);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-30, 30], [3, -3]);
-  const rotateY = useTransform(x, [-30, 30], [-4, 4]);
-
-  return <motion.div className="hero-artifact" style={{ rotateX, rotateY }} onMouseMove={(event) => {
-    const box = event.currentTarget.getBoundingClientRect();
-    x.set(event.clientX - box.left - box.width / 2); y.set(event.clientY - box.top - box.height / 2);
-  }} onMouseLeave={() => { x.set(0); y.set(0); }}>
-    <div className="artifact-glow" />
-    <div className="artifact-bar"><span className="artifact-brand"><span className="brand-mark">P</span> ProjectOS</span><span className="artifact-status"><i /> Live planning view</span><span className="artifact-avatar">MW</span></div>
-    <div className="artifact-labels"><span>Before</span><span>After</span></div>
-    <div className="artifact-stage">
-      <div className="artifact-before" style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}>
-        <div className="noise-title">Untitled workspace</div><div className="noise-sub">Ideas, tabs, and loose ends</div>
-        <div className="noise-stack"><span>pricing notes?</span><span>launch tasks</span><span>repo issue #48</span><span>call with Maya</span><span>metrics later</span></div>
-        <div className="loose-dot d1"/><div className="loose-dot d2"/><div className="loose-dot d3"/>
-      </div>
-      <div className="artifact-after" style={{ clipPath: `inset(0 0 0 ${split}%)` }}>
-        <aside><div className="side-logo">P</div><span className="side-active"/><span/><span/><span/><span/></aside>
-        <div className="artifact-content"><div className="artifact-kicker">Tuesday, 10:24 AM</div><div className="artifact-title">Orbit / Launch room</div><div className="signal-row"><div><span>Release readiness</span><b>82%</b><i className="up">+12%</i></div><div><span>Priority actions</span><b>04</b><i>this week</i></div><div><span>Open signals</span><b>12</b><i className="up">healthy</i></div></div><div className="artifact-board"><div className="board-head"><span>Launch sequence</span><span className="board-chip">In focus</span></div><div className="board-line"><i className="check"/> Finalize onboarding <small>Today</small></div><div className="board-line"><i className="check faint"/> Verify deployment <small>Fri</small></div><div className="board-line"><i className="check faint"/> Invite first cohort <small>Next</small></div></div></div>
-      </div>
-      <div className="split-line" style={{ left: `${split}%` }}><button aria-label="Compare before and after" className="split-knob"><span>‹</span><span>›</span></button></div>
-      <input className="comparison-input" aria-label="Move to compare an unstructured and organized workspace" type="range" min="8" max="92" value={split} onChange={(event) => setSplit(Number(event.target.value))}/>
-    </div>
-    <p className="artifact-caption"><WandSparkles size={14}/> Drag the divider — from a pile of work to a system that knows what matters.</p>
-  </motion.div>;
+function MiniDashboard({ config, status }: { config: WorkspaceConfig | null; status: "idle" | "shaping" | "ready" }) {
+  const priorities = config?.priorities ?? ["Your next decision", "What needs attention", "The context behind it"];
+  return <div className="mini-dashboard" aria-label="Workspace preview"><div className="mini-top"><span className="mini-dot active"/><span className="mini-dot"/><span className="mini-dot"/><b>{config?.name ?? "your-project"}</b><span className="mini-state">{status === "ready" ? "compiled" : status === "shaping" ? "writing" : "preview"}</span></div><div className="mini-body"><aside><span className="mini-p">P</span><i className="selected"/><i/><i/><i/></aside><div className="mini-content"><span className="mini-eyebrow">PROJECT ROOM</span><h3>{config?.name ?? "A room for the work"}</h3><div className="mini-metrics"><div><span>First focus</span><b>{priorities[0]}</b></div><div><span>Tools</span><b>{config?.modules.length ?? 6}</b></div></div><div className="mini-list"><div><i/><span>{priorities[1]}</span><small>next</small></div><div><i/><span>{priorities[2]}</span><small>context</small></div><div><i/><span>Review the plan</span><small>ready</small></div></div></div></div></div>;
 }
 
 export function Landing() {
-  return <main className="landing-page"><div className="aurora aurora-one"/><div className="aurora aurora-two"/><div className="landing-grid"/>
-    <div className="shell"><header className="topbar glass-nav"><Link className="brand" href="/"><span className="brand-mark">P</span>ProjectOS</Link><nav className="nav"><a href="#how">How it works</a><a href="#workspaces">Workspaces</a><a href="#trust">How it connects</a><Link className="button button-glow" href="/onboarding">Build my workspace <ArrowRight size={15}/></Link></nav></header>
-      <section className="hero hero-v2"><div className="hero-copy"><motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="announcement"><span className="pulse"/> A better way to start a project</motion.div><h1>Give your work<br/>a <em>place to think.</em></h1><p>ProjectOS turns a plain-English brief into a focused project room—so you can see the next move, not another empty dashboard.</p><div className="hero-actions"><Link className="button button-glow" href="/onboarding">Start with your project <ArrowRight size={16}/></Link><a className="button-quiet glass-button" href="#how">See how it works</a></div><div className="hero-proof"><span><CheckCircle2 size={15}/> No account to try</span><span><CheckCircle2 size={15}/> Your data stays local</span></div></div><Artifact/></section></div>
-    <section id="how" className="landing-section"><div className="shell"><div className="section-intro"><div><div className="eyebrow">Your brief becomes a working room</div><h2>Less setup. More <em>momentum.</em></h2></div><p>We ask what you are trying to accomplish in normal language, then shape the starting view around the work—not a list of software features.</p></div><div className="how-grid"><article className="glass-card how-card"><span className="step">01</span><MessageIcon/><h3>Tell us the outcome</h3><p>“I’m launching a membership product” makes more sense than choosing from a wall of dashboard widgets.</p></article><article className="glass-card how-card"><span className="step">02</span><Boxes size={21}/><h3>Get a room with a point of view</h3><p>Priorities, the right modules, and a clear first move arrive together—not as a blank canvas.</p></article><article className="glass-card how-card"><span className="step">03</span><Sparkles size={21}/><h3>Make it yours as you go</h3><p>Add real tasks, notes, resources, GitHub context, and project-aware AI guidance when you need it.</p></article></div></div></section>
-    <section id="workspaces" className="landing-section workspace-section"><div className="shell"><div className="section-intro"><div><div className="eyebrow">Different work needs different rooms</div><h2>Built around the <em>job.</em></h2></div><p>Every workspace is assembled from approved, understandable modules. No mystery automation. No fake “insights.”</p></div><div className="workspace-types">{workspaceTypes.map((item, index) => <motion.article whileHover={{ y: -7 }} className="glass-card workspace-type" key={item.title}><div className={`type-orb type-orb-${index}`}/><span className="type-tag">{item.tag}</span><h3>{item.title}</h3><p>{item.copy}</p><Link href="/onboarding">Explore this setup <ArrowRight size={14}/></Link></motion.article>)}</div></div></section>
-    <section id="trust" className="landing-section"><div className="shell trust-panel glass-card"><div><div className="eyebrow">Useful without pretending</div><h2>Clear about what’s connected.</h2><p>ProjectOS shows verified GitHub data only after a successful public lookup. The assistant can help you think, but it cannot deploy, change repositories, or access accounts.</p></div><div className="trust-list"><span><Github size={17}/><b>GitHub</b><small>Connected when you choose a public repo</small></span><span><Sparkles size={17}/><b>AI assistant</b><small>Guidance, never autonomous actions</small></span></div></div></section>
-    <footer className="shell footer footer-v2"><span>© {new Date().getFullYear()} ProjectOS</span><span>Local-demo V1 · No browser-stored credentials</span></footer>
+  const router = useRouter();
+  const [brief, setBrief] = useState("");
+  const [status, setStatus] = useState<"idle" | "shaping" | "ready">("idle");
+  const [transcript, setTranscript] = useState<Transcript[]>([{ tone: "system", text: "ProjectOS operator online. Tell me what you need the dashboard to do." }]);
+  const [config, setConfig] = useState<WorkspaceConfig | null>(null);
+  const timeouts = useRef<number[]>([]);
+
+  useEffect(() => () => timeouts.current.forEach(window.clearTimeout), []);
+  const write = (line: Transcript, after = 0) => { const id = window.setTimeout(() => setTranscript(current => [...current, line]), after); timeouts.current.push(id); };
+  const shape = async (value = brief) => {
+    const description = value.trim(); if (!description || status === "shaping") return;
+    setBrief(description); setStatus("shaping"); setConfig(null);
+    setTranscript([{ tone: "command", text: `> ${description}` }, { tone: "system", text: "Analyzing the outcome—not just filling a dashboard…" }]);
+    write({ tone: "system", text: "├─ selecting a focused workspace shape" }, 420);
+    write({ tone: "system", text: "├─ choosing only useful modules" }, 760);
+    let workspace: WorkspaceConfig | undefined; let mode = "local planner";
+    try {
+      const response = await fetch("/api/workspace-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description }) });
+      const result = await response.json(); if (response.ok) { workspace = result.config; mode = result.mode === "ai" ? "AI planner" : mode; }
+    } catch { /* A validated local planner handles offline development. */ }
+    if (!workspace) { const { generateWorkspace } = await import("@/lib/workspace-schema"); workspace = generateWorkspace({ description }); }
+    const shaped = workspace;
+    write({ tone: "success", text: `├─ ${mode}: ${shaped.category} workspace selected` }, 1050);
+    write({ tone: "success", text: `├─ modules: ${shaped.modules.join(", ")}` }, 1340);
+    const done = window.setTimeout(() => { saveWorkspace(shaped); saveData(emptyData()); setConfig(shaped); setStatus("ready"); setTranscript(current => [...current, { tone: "success", text: `└─ ${shaped.name} is ready to open.` }]); }, 1680);
+    timeouts.current.push(done);
+  };
+  return <main className="operator-page"><div className="operator-scene"/><div className="operator-stars"/>
+    <header className="command-nav"><Link href="/" className="brand"><span className="brand-mark">P</span>ProjectOS</Link><nav><a href="#operator">Operator</a><a href="#how">How it works</a><Link href="/workspace">My workspace</Link></nav><a className="nav-live" href="#operator"><i/> Live builder</a></header>
+    <section className="operator-hero" id="operator"><motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="operator-intro"><div className="operator-kicker"><Command size={14}/> PROJECTOS / OPERATOR</div><h1>Describe the room.<br/><em>Watch it take shape.</em></h1><p>Tell the operator what you need to run. It builds a real, constrained workspace plan while you watch—no empty dashboard, no mystery setup.</p></motion.div>
+      <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .12 }} className="operator-terminal"><div className="terminal-chrome"><div><span/><span/><span/></div><b>projectos@operator:~</b><span className="terminal-secure"><Circle size={7} fill="currentColor"/> local session</span></div><div className="terminal-grid"><div className="terminal-pane"><div className="terminal-scroll" aria-live="polite">{transcript.map((line, index) => <motion.div initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} className={`terminal-line ${line.tone}`} key={`${line.text}-${index}`}><span>{line.tone === "success" ? <Check size={13}/> : line.tone === "command" ? "❯" : "·"}</span>{line.text}</motion.div>)}{status === "shaping" && <div className="terminal-cursor">▋</div>}</div><div className="terminal-composer"><span>❯</span><textarea value={brief} disabled={status === "shaping"} onChange={(event) => setBrief(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); shape(); } }} placeholder="Describe the dashboard you wish existed…" aria-label="Describe your ideal dashboard"/><button onClick={() => shape()} disabled={!brief.trim() || status === "shaping"}>{status === "shaping" ? <span className="spinner"/> : <Play size={14} fill="currentColor"/>}<span>{status === "shaping" ? "Building" : "Build"}</span></button></div><div className="terminal-suggestions"><span>Try:</span>{examples.map((example, index) => <button key={example} onClick={() => shape(example)} disabled={status === "shaping"}>/{["launch", "client", "ai"][index]}</button>)}</div></div><div className="preview-pane"><div className="preview-label"><span><Sparkles size={13}/> LIVE OUTPUT</span><small>{status === "idle" ? "waiting for a brief" : status === "shaping" ? "assembling view" : "workspace ready"}</small></div><MiniDashboard config={config} status={status}/><AnimatePresence>{status === "ready" && config && <motion.div initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} className="open-workspace"><span>Plan saved locally</span><button onClick={() => router.push("/workspace")}>Open {config.name} <ArrowRight size={15}/></button></motion.div>}</AnimatePresence></div></div></motion.section>
+    </section>
+    <section className="operator-how" id="how"><div><span>01 / Brief</span><b>Say what you are trying to make happen.</b></div><ChevronRight/><div><span>02 / Plan</span><b>Watch the operator choose the right building blocks.</b></div><ChevronRight/><div><span>03 / Room</span><b>Open a workspace that starts with a point of view.</b></div></section>
+    <footer className="operator-footer">ProjectOS V1 <span>·</span> local-demo workspace builder <span>·</span> no browser-stored credentials</footer>
   </main>;
 }
-
-function MessageIcon() { return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 15a4 4 0 0 1-4 4H8l-4 3v-7a4 4 0 0 1-2-3.5V8a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/><path d="M7 10h10M7 14h6"/></svg>; }
