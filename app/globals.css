@@ -87,3 +87,16 @@ body::before { content:""; position:fixed; z-index:-2; inset:0; pointer-events:n
   content: none;
   display: none;
 }
+
+/* The main reveal is product-oriented, not a decorative animation reel. */
+.container-scroll { position:relative; min-height:680px; display:flex; align-items:center; width:100%; padding:38px 0 78px; perspective:1100px; }
+.container-scroll-inner { width:100%; transform-style:preserve-3d; }
+.container-scroll-title { max-width:560px; margin:0 auto 18px; text-align:center; }
+.scroll-stage-copy span { color:#74ffed; font-size:10px; font-weight:850; letter-spacing:.13em; }
+.scroll-stage-copy p { margin:7px 0 0; color:#d2e1f5; font-size:14px; }
+.container-scroll-card { transform-origin:50% 0; will-change:transform; }
+.operator-scene,.operator-signals i { animation:none; }
+.terminal-pane::after,.preview-pane::after { content:none; display:none; }
+.operator-scene,.operator-stars { display:none; }
+.operator-orbit { opacity:.42; }
+@media (max-width:720px) { .container-scroll { min-height:0; padding:22px 0 40px; }.container-scroll-title { margin-bottom:13px; }.scroll-stage-copy p { font-size:12px; } }
