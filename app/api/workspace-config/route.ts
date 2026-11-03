@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { workspaceSchema } from "@/lib/workspace-schema";
 import { defaultProjectModel, projectModelSchema } from "@/lib/project-models";
+import { getResponseText } from "@/lib/openai-response";
 
 const requestSchema = z.object({
   description: z.string().trim().min(12).max(1500),
@@ -36,9 +37,10 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ model, reasoning: { effort: "low" }, input: prompt, max_output_tokens: 700, text: { format: { type: "json_schema", name: "projectos_workspace_plan", strict: true, schema: workspacePlanSchema } } }),
     });
     if (!response.ok) return NextResponse.json({ error: "The AI builder could not produce a workspace plan.", providerStatus: response.status }, { status: 502 });
-    const output = await response.json() as { output_text?: string };
-    if (!output.output_text) throw new Error("No structured output");
-    const plan = JSON.parse(output.output_text);
+    const output = await response.json() as Parameters<typeof getResponseText>[0];
+    const outputText = getResponseText(output);
+    if (!outputText) throw new Error("No structured output");
+    const plan = JSON.parse(outputText);
     const config = workspaceSchema.parse({ ...plan, description: workspaceDescription(plan.description || description), id: `project-${Date.now()}`, permissions: { localDemo: true, github: false, ai: true }, createdAt: new Date().toISOString() });
     return NextResponse.json({ config, mode: "ai", model });
   } catch {
