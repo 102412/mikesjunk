@@ -18,12 +18,12 @@ const trackCopy: Record<WorkspaceConfig["category"], { mission: string; left: st
   general: { mission: "Make the work in front of you feel smaller and more possible.", left: "Choose one meaningful next move", right: "Keep the context you need close by" },
 };
 
-export function Workspace() {
+export function Workspace({ embedded = false }: { embedded?: boolean }) {
   const [config, setConfig] = useState<WorkspaceConfig | null>(null); const [data, setData] = useState<WorkspaceData | null>(null);
   useEffect(() => { setConfig(readWorkspace()); setData(readData()); }, []);
   const persist = (next: WorkspaceData) => { setData(next); saveData(next); };
   const done = useMemo(() => data ? data.tasks.filter((task) => task.done).length : 0, [data]);
-  if (!config || !data) return <main className="workspace-main"><p className="muted">Opening your room…</p></main>;
+  if (!config || !data) return <main className={`workspace-main ${embedded ? "workspace-embedded" : ""}`}><p className="muted">Opening your room…</p></main>;
   const track = trackCopy[config.category];
   const addActivity = (message: string, current = data) => ({ ...current, activity: [{ id: crypto.randomUUID(), message, at: new Date().toISOString() }, ...current.activity].slice(0, 20) });
   const content: Record<ModuleId, React.ReactNode> = {
@@ -36,7 +36,7 @@ export function Workspace() {
     metrics: <div className="empty"><CircleAlert size={20}/><strong>Nothing connected yet</strong><span>Bring in a verified source before using operational metrics to make decisions.</span></div>,
     assistant: <Assistant config={config} />,
   };
-  return <main className="workspace-main workspace-v2"><div className="workspace-orb workspace-orb-one"/><div className="workspace-orb workspace-orb-two"/>
+  return <main className={`workspace-main workspace-v2 ${embedded ? "workspace-embedded" : ""}`}><div className="workspace-orb workspace-orb-one"/><div className="workspace-orb workspace-orb-two"/>
     <header className="workspace-head"><div><div className="eyebrow">{config.category} room / local demo</div><h1>{config.name}</h1><p>Made to keep <b>{config.priorities.slice(0, 2).join(" and ").toLowerCase()}</b> in view.</p></div><div className="workspace-head-actions"><span className="status"><i/> Local-first</span><span className="tiny">Your data is stored in this browser</span></div></header>
     <section className="mission-panel glass-card"><div className="mission-top"><span className="mission-label"><Target size={15}/> TODAY’S AIM</span><span className="mission-live"><i/> Planning room</span></div><h2>{track.mission}</h2><div className="mission-grid"><div><span>Start here</span><b>{track.left}</b></div><div><span>Then</span><b>{track.right}</b></div><div className="mission-progress"><span>{done}/{data.tasks.length || 0} actions complete</span><div><i style={{ width: `${data.tasks.length ? Math.round((done / data.tasks.length) * 100) : 0}%` }}/></div></div></div></section>
     <section className="focus-grid"><div className="focus-card glass-card"><span>Current focus</span><b>{config.priorities[0]}</b><p>This is a planning signal from your original brief—not a live external metric.</p></div><div className="focus-card glass-card"><span>Room shape</span><b>{config.modules.length} useful tools</b><p>Tasks, context, and connections are available when you need them.</p></div><div className="focus-card glass-card"><span>Quick move</span><button onClick={() => document.getElementById("next-actions")?.scrollIntoView({ behavior: "smooth" })}>Add a next action <ChevronRight size={15}/></button></div></section>
