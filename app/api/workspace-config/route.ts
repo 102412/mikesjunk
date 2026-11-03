@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { workspaceSchema } from "@/lib/workspace-schema";
+import { generateWorkspace, moduleIdSchema, workspaceSchema } from "@/lib/workspace-schema";
 import { defaultProjectModel, projectModelSchema } from "@/lib/project-models";
 import { getResponseText } from "@/lib/openai-response";
 
@@ -23,6 +23,36 @@ function workspaceDescription(description: string) {
   return description.trim().slice(0, 500);
 }
 
+function strings(value: unknown, max: number) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map(item => item.trim()).slice(0, max) : [];
+}
+
+function normalizePlan(plan: unknown, description: string) {
+  const source = plan && typeof plan === "object" ? plan as Record<string, unknown> : {};
+  const base = generateWorkspace({ description });
+  const modules = strings(source.modules, 8).filter(module => moduleIdSchema.safeParse(module).success);
+  const priorities = strings(source.priorities, 8);
+  const stack = strings(source.stack, 12);
+  const rules = strings(source.workflowRules, 6);
+  return workspaceSchema.parse({
+    ...base,
+    id: `project-${Date.now()}`,
+    name: typeof source.name === "string" && source.name.trim() ? source.name.trim().slice(0, 80) : base.name,
+    description: workspaceDescription(typeof source.description === "string" && source.description.trim() ? source.description : description),
+    category: source.category === "saas" || source.category === "client" || source.category === "ai" || source.category === "general" ? source.category : base.category,
+    theme: source.theme === "dark" || source.theme === "light" ? source.theme : base.theme,
+    accent: source.accent === "violet" || source.accent === "blue" || source.accent === "amber" ? source.accent : base.accent,
+    stack: stack.length ? stack : base.stack,
+    teamSize: typeof source.teamSize === "string" && source.teamSize.trim() ? source.teamSize.trim().slice(0, 80) : base.teamSize,
+    priorities: priorities.length ? priorities : base.priorities,
+    modules: modules.length >= 3 ? modules : base.modules,
+    layout: source.layout === "focus" || source.layout === "balanced" || source.layout === "operations" ? source.layout : base.layout,
+    workflowRules: rules.length ? rules : base.workflowRules,
+    permissions: { localDemo: true, github: false, ai: true },
+    createdAt: new Date().toISOString(),
+  });
+}
+
 export async function POST(request: NextRequest) {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Describe the project in a little more detail." }, { status: 400 });
@@ -40,8 +70,7 @@ export async function POST(request: NextRequest) {
     const output = await response.json() as Parameters<typeof getResponseText>[0];
     const outputText = getResponseText(output);
     if (!outputText) throw new Error("No structured output");
-    const plan = JSON.parse(outputText);
-    const config = workspaceSchema.parse({ ...plan, description: workspaceDescription(plan.description || description), id: `project-${Date.now()}`, permissions: { localDemo: true, github: false, ai: true }, createdAt: new Date().toISOString() });
+    const config = normalizePlan(JSON.parse(outputText), description);
     return NextResponse.json({ config, mode: "ai", model });
   } catch {
     return NextResponse.json({ error: "The AI builder could not produce a valid workspace plan. No dashboard was created." }, { status: 502 });
