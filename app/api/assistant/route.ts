@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid assistant request." }, { status: 400 });
   const { question, workspace, model = defaultProjectModel } = parsed.data;
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY ?? process.env.OPENAIAPI;
   if (!apiKey) return NextResponse.json({ error: "The AI editor is not configured on this deployment." }, { status: 503 });
   try {
     const prompt = `You are ProjectOS, a concise project-aware assistant. You may advise only; do not claim access to repositories, deployments, or external accounts. Project: ${workspace.name}. Description: ${workspace.description}. Priorities: ${workspace.priorities.join(", ")}. Enabled modules: ${workspace.modules.join(", ")}. Question: ${question}`;
