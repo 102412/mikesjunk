@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, Code2, Database, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { WordsPullUp } from "@/components/ui/prisma-hero";
+import { MarketingNav } from "@/components/marketing-nav";
 
 const plans = [
   { name: "Free", price: "$0", note: "Try the builder", features: ["1 Luna dashboard", "5 revisions", "HTML export"], action: "Build free" },
@@ -17,7 +18,7 @@ const steps = [
 
 export function Landing() {
   return <main className="modern-marketing">
-    <header className="modern-nav"><Link href="/" className="modern-brand"><span>p</span>ProjectOS</Link><nav><a href="#how">How it works</a><a href="#hosting">Hosting</a><a href="#pricing">Pricing</a></nav><Link className="modern-nav-cta" href="/onboarding">Build a dashboard <ArrowRight size={15}/></Link></header>
+    <MarketingNav />
 
     <section className="modern-hero"><div className="hero-copy-modern"><div className="modern-kicker"><Sparkles size={14}/> Dashboard builder, not another dashboard</div><h1><WordsPullUp text="Make the work visible." showAsterisk /></h1><p>Describe the job. ProjectOS asks the questions a template cannot, then builds a dashboard you can export or keep live for the people who run it.</p><div className="modern-actions"><Link className="modern-primary" href="/onboarding">Start building <ArrowRight size={16}/></Link><a className="modern-text-link" href="#pricing">See hosting plans <ArrowRight size={15}/></a></div><div className="hero-fineprint"><span><Check size={14}/> Exportable code</span><span><Check size={14}/> Hosted when you need it</span><span><Check size={14}/> No subscription to own your work</span></div></div><div className="hero-board" aria-label="Example ProjectOS dashboard"><div className="board-toolbar"><span className="board-logo">P</span><span>Field operations / this week</span><i>Live</i></div><div className="board-main"><aside><span className="side-label">WORKSPACE</span><b>Northside lawn</b><a>Overview</a><a className="active">Schedule</a><a>Customers</a><a>Team</a><a>Settings</a></aside><section><div className="board-title"><div><small>MONDAY, 9:40 AM</small><h2>Everything the crew needs.</h2></div><button>+ New job</button></div><div className="board-stats"><article><span>Today&apos;s jobs</span><b>12</b><small>4 need routing</small></article><article><span>Team live</span><b>08</b><small className="positive">All clocked in</small></article><article><span>Week booked</span><b>84%</b><small>+12% from last week</small></article></div><div className="board-list"><div className="list-head"><span>Today&apos;s route</span><small>7:00—5:00</small></div>{["Hughes / 9:00", "Williams / 10:30", "Dawson / 12:15"].map((job, index) => <div className="job-row" key={job}><i className={`job-dot dot-${index}`}/><span>{job}</span><small>{index === 0 ? "North district" : index === 1 ? "Mowing + edge" : "Estimate"}</small><b>{index === 2 ? "Unassigned" : "On route"}</b></div>)}</div></section></div></div></section>
 
