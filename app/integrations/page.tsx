@@ -3,7 +3,7 @@ import { Github, Sparkles, Database, MessageSquare } from "lucide-react";
 
 const integrations = [
   [Github, "GitHub", "Implemented", "Look up a public owner/repository and retrieve its repository metadata, recent commits, and open-issue count.", "/workspace"],
-  [Sparkles, "OpenAI", "Optional", "When OPENAI_API_KEY is configured server-side, the project-aware assistant can use it. Otherwise a deterministic local fallback is used.", "/workspace"],
+  [Sparkles, "OpenAI", "Required for AI builds", "ProjectOS sends scoped build and edit requests through its server-side OpenAI integration. If the key is unavailable, the builder shows an explicit error and does not fabricate a dashboard.", "/onboarding"],
   [Database, "Supabase", "Planned", "A managed multi-user database path. Not connected in this local-demo V1.", "#"],
   [MessageSquare, "Linear", "Planned", "Issue synchronization is intentionally not represented as connected until OAuth and authorization are implemented.", "#"],
 ] as const;

@@ -1,60 +1,12 @@
-"use client";
-
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, ChevronRight, Circle, Command, Play, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { emptyData, saveData, saveWorkspace } from "@/lib/storage";
-import type { WorkspaceConfig } from "@/lib/workspace-schema";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { ArrowRight, Check, Download, LayoutPanelTop, MessageSquareText, Sparkles } from "lucide-react";
 
-type Transcript = { tone: "command" | "system" | "success"; text: string };
-const examples = [
-  "I’m launching \"Orbit\", a subscription web app. I need to see what to ship, keep product notes, customer signals, and connect my GitHub repo.",
-  "A client workspace for websites: deadlines, briefs, decisions, links, and the work I should do next.",
-  "An AI product control room for reliability, incidents, docs, and technical experiments.",
+const steps = [
+  ["01", "Tell us the outcome", "Start with the project, team, and decisions the dashboard should support."],
+  ["02", "Scope it with AI", "Answer a small set of focused questions before a dashboard is assembled."],
+  ["03", "Build and export", "Watch the workspace take shape, refine it, then export the dashboard you made."],
 ];
 
-function MiniDashboard({ config, status }: { config: WorkspaceConfig | null; status: "idle" | "shaping" | "ready" }) {
-  const priorities = config?.priorities ?? ["Your next decision", "What needs attention", "The context behind it"];
-  return <div className="mini-dashboard" aria-label="Workspace preview"><div className="mini-top"><span className="mini-dot active"/><span className="mini-dot"/><span className="mini-dot"/><b>{config?.name ?? "your-project"}</b><span className="mini-state">{status === "ready" ? "compiled" : status === "shaping" ? "writing" : "preview"}</span></div><div className="mini-body"><aside><span className="mini-p">P</span><i className="selected"/><i/><i/><i/></aside><div className="mini-content"><span className="mini-eyebrow">PROJECT ROOM</span><h3>{config?.name ?? "A room for the work"}</h3><div className="mini-metrics"><div><span>First focus</span><b>{priorities[0]}</b></div><div><span>Tools</span><b>{config?.modules.length ?? 6}</b></div></div><div className="mini-list"><div><i/><span>{priorities[1]}</span><small>next</small></div><div><i/><span>{priorities[2]}</span><small>context</small></div><div><i/><span>Review the plan</span><small>ready</small></div></div></div></div></div>;
-}
-
 export function Landing() {
-  const router = useRouter();
-  const [brief, setBrief] = useState("");
-  const [status, setStatus] = useState<"idle" | "shaping" | "ready">("idle");
-  const [transcript, setTranscript] = useState<Transcript[]>([{ tone: "system", text: "ProjectOS operator online. Tell me what you need the dashboard to do." }]);
-  const [config, setConfig] = useState<WorkspaceConfig | null>(null);
-  const timeouts = useRef<number[]>([]);
-
-  useEffect(() => () => timeouts.current.forEach(window.clearTimeout), []);
-  const write = (line: Transcript, after = 0) => { const id = window.setTimeout(() => setTranscript(current => [...current, line]), after); timeouts.current.push(id); };
-  const shape = async (value = brief) => {
-    const description = value.trim(); if (!description || status === "shaping") return;
-    setBrief(description); setStatus("shaping"); setConfig(null);
-    setTranscript([{ tone: "command", text: `> ${description}` }, { tone: "system", text: "Analyzing the outcome—not just filling a dashboard…" }]);
-    write({ tone: "system", text: "├─ selecting a focused workspace shape" }, 420);
-    write({ tone: "system", text: "├─ choosing only useful modules" }, 760);
-    let workspace: WorkspaceConfig | undefined; let mode = "local planner";
-    try {
-      const response = await fetch("/api/workspace-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description }) });
-      const result = await response.json(); if (response.ok) { workspace = result.config; mode = result.mode === "ai" ? "AI planner" : mode; }
-    } catch { /* A validated local planner handles offline development. */ }
-    if (!workspace) { const { generateWorkspace } = await import("@/lib/workspace-schema"); workspace = generateWorkspace({ description }); }
-    const shaped = workspace;
-    write({ tone: "success", text: `├─ ${mode}: ${shaped.category} workspace selected` }, 1050);
-    write({ tone: "success", text: `├─ modules: ${shaped.modules.join(", ")}` }, 1340);
-    const done = window.setTimeout(() => { saveWorkspace(shaped); saveData(emptyData()); setConfig(shaped); setStatus("ready"); setTranscript(current => [...current, { tone: "success", text: `└─ ${shaped.name} is ready to open.` }]); }, 1680);
-    timeouts.current.push(done);
-  };
-  return <main className="operator-page"><div className="operator-scene"/><div className="operator-stars"/><div className="operator-orbit orbit-one"/><div className="operator-orbit orbit-two"/><div className="operator-orbit orbit-three"/>
-    <header className="command-nav liquid-surface"><Link href="/" className="brand"><span className="brand-mark">P</span>ProjectOS</Link><nav><a href="#operator">Operator</a><a href="#how">How it works</a><Link href="/workspace">My workspace</Link></nav><Link className="nav-live" href="/builder"><i/> Build with AI</Link></header>
-    <section className="operator-hero" id="operator"><motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="operator-intro"><div className="operator-kicker"><Command size={14}/> PROJECTOS / OPERATOR</div><h1>From intent<br/><em>to interface.</em></h1><p>Describe what needs to happen. The operator translates it into a real, constrained workspace plan while you watch.</p><div className="operator-signals"><span><i/> intent in</span><b>→</b><span><i/> room out</span><b>→</b><span><i/> local first</span></div></motion.div>
-      <ContainerScroll titleComponent={<div className="scroll-stage-copy"><span>THE OPERATOR, IN CONTEXT</span><p>Scroll into the workspace before you build it.</p></div>}><section className="operator-terminal"><div className="terminal-chrome"><div><span/><span/><span/></div><b>projectos@operator:~</b><span className="terminal-secure"><Circle size={7} fill="currentColor"/> local session</span></div><div className="terminal-grid"><div className="terminal-pane"><div className="terminal-scroll" aria-live="polite">{transcript.map((line, index) => <motion.div initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} className={`terminal-line ${line.tone}`} key={`${line.text}-${index}`}><span>{line.tone === "success" ? <Check size={13}/> : line.tone === "command" ? "❯" : "·"}</span>{line.text}</motion.div>)}{status === "shaping" && <div className="terminal-cursor">▋</div>}</div><div className="terminal-composer"><span>❯</span><textarea value={brief} disabled={status === "shaping"} onChange={(event) => setBrief(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); shape(); } }} placeholder="Describe the dashboard you wish existed…" aria-label="Describe your ideal dashboard"/><button onClick={() => shape()} disabled={!brief.trim() || status === "shaping"}>{status === "shaping" ? <span className="spinner"/> : <Play size={14} fill="currentColor"/>}<span>{status === "shaping" ? "Building" : "Build"}</span></button></div><div className="terminal-suggestions"><span>Try:</span>{examples.map((example, index) => <button key={example} onClick={() => shape(example)} disabled={status === "shaping"}>/{["launch", "client", "ai"][index]}</button>)}</div></div><div className="preview-pane"><div className="preview-label"><span><Sparkles size={13}/> LIVE OUTPUT</span><small>{status === "idle" ? "waiting for a brief" : status === "shaping" ? "assembling view" : "workspace ready"}</small></div><MiniDashboard config={config} status={status}/><AnimatePresence>{status === "ready" && config && <motion.div initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} className="open-workspace"><span>Plan saved locally</span><button onClick={() => router.push("/workspace")}>Open {config.name} <ArrowRight size={15}/></button></motion.div>}</AnimatePresence></div></div></section></ContainerScroll>
-    </section>
-    <section className="operator-how" id="how"><div><span>01 / Brief</span><b>Say what you are trying to make happen.</b></div><ChevronRight/><div><span>02 / Plan</span><b>Watch the operator choose the right building blocks.</b></div><ChevronRight/><div><span>03 / Room</span><b>Open a workspace that starts with a point of view.</b></div></section>
-    <footer className="operator-footer">ProjectOS V1 <span>·</span> local-demo workspace builder <span>·</span> no browser-stored credentials</footer>
-  </main>;
+  return <main className="marketing-page"><header className="marketing-nav"><Link href="/" className="brand"><span className="brand-mark">P</span>ProjectOS</Link><nav><a href="#how">How it works</a><a href="#product">Product</a><a href="#export">Export</a></nav><Link className="button" href="/onboarding">Create a dashboard <ArrowRight size={15}/></Link></header><section className="marketing-hero"><div className="marketing-copy"><span className="marketing-eyebrow"><Sparkles size={14}/> AI dashboard studio</span><h1>Dashboards that start with <em>the work.</em></h1><p>ProjectOS is a guided AI studio for turning a real project brief into a tailored dashboard—not another generic workspace template.</p><div className="marketing-actions"><Link className="button" href="/onboarding">Start a dashboard <ArrowRight size={16}/></Link><a className="button-quiet" href="#how">See the process</a></div><div className="marketing-proof"><span><Check size={14}/> Guided scope before build</span><span><Check size={14}/> Live workspace preview</span><span><Check size={14}/> Export when ready</span></div></div><div className="marketing-demo glass-card" aria-label="Example dashboard build flow"><div className="demo-top"><span>projectos / dashboard studio</span><i>AI building</i></div><div className="demo-body"><aside><span className="demo-mark">P</span><i/><i/><i/></aside><div><small>CREATING A PRODUCT LAUNCH ROOM</small><h2>Orbit launch</h2><p>Scope is turning into a dashboard with a clear first decision.</p><div className="demo-grid"><section><span>Next release</span><b>Ship the beta</b><i/></section><section><span>Customer signal</span><b>12 interviews</b><i/></section><section><span>Team focus</span><b>3 open calls</b><i/></section></div><div className="demo-line"><span>Building modules</span><b>overview · tasks · feedback</b></div></div></div></div></section><section className="marketing-section" id="how"><div className="section-kicker">A clearer creation path</div><h2>A short conversation becomes a working dashboard.</h2><div className="marketing-steps">{steps.map(([number, title, copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}</div></section><section className="marketing-section marketing-product" id="product"><div><div className="section-kicker">Built for the useful part</div><h2>Make the project visible, then keep changing it.</h2></div><div className="product-points"><p><MessageSquareText size={17}/><span><b>Scope before structure.</b> The builder asks the questions a template never can.</span></p><p><LayoutPanelTop size={17}/><span><b>See the room as it forms.</b> The preview stays grounded in an approved dashboard model.</span></p><p id="export"><Download size={17}/><span><b>Leave with your work.</b> Export the finished dashboard as a portable configuration or standalone HTML.</span></p></div></section><footer className="marketing-footer"><span>ProjectOS</span><span>AI dashboard studio</span><Link href="/onboarding">Create a dashboard <ArrowRight size={14}/></Link></footer></main>;
 }

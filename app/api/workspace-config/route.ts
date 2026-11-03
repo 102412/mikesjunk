@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { generateWorkspace, workspaceSchema } from "@/lib/workspace-schema";
+import { workspaceSchema } from "@/lib/workspace-schema";
 import { defaultProjectModel, projectModelSchema } from "@/lib/project-models";
 
 const requestSchema = z.object({
@@ -22,15 +22,11 @@ function workspaceDescription(description: string) {
   return description.trim().slice(0, 500);
 }
 
-function deterministic(description: string, themePreference?: "dark" | "light") {
-  return generateWorkspace({ description: workspaceDescription(description), themePreference });
-}
-
 export async function POST(request: NextRequest) {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Describe the project in a little more detail." }, { status: 400 });
   const { description, themePreference, model = defaultProjectModel } = parsed.data;
-  if (!process.env.OPENAI_API_KEY) return NextResponse.json({ config: deterministic(description, themePreference), mode: "deterministic" });
+  if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: "The AI builder is not configured on this deployment." }, { status: 503 });
   const prompt = `Generate a JSON workspace plan for ProjectOS from this project description: ${description}\n\nOnly select approved module IDs supplied by the schema. Do not invent integrations, credentials, metrics, code, or permissions. Make the design genuinely fit the stated project. ${themePreference ? `The user explicitly prefers ${themePreference} mode.` : ""}`;
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -45,6 +41,6 @@ export async function POST(request: NextRequest) {
     const config = workspaceSchema.parse({ ...plan, description: workspaceDescription(plan.description || description), id: `project-${Date.now()}`, permissions: { localDemo: true, github: false, ai: true }, createdAt: new Date().toISOString() });
     return NextResponse.json({ config, mode: "ai", model });
   } catch {
-    return NextResponse.json({ config: deterministic(description, themePreference), mode: "deterministic" });
+    return NextResponse.json({ error: "The AI builder could not produce a valid workspace plan. No dashboard was created." }, { status: 502 });
   }
 }

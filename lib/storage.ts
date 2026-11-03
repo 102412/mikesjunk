@@ -26,6 +26,16 @@ export function readWorkspace(): WorkspaceConfig {
   }
 }
 
+export function hasStoredWorkspace() {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    return raw !== null && workspaceSchema.safeParse(JSON.parse(raw)).success;
+  } catch {
+    return false;
+  }
+}
+
 export function saveWorkspace(config: WorkspaceConfig) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(workspaceSchema.parse(config)));
 }

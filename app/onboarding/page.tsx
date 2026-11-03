@@ -1,3 +1,3 @@
 import { AppNav } from "@/components/app-nav";
-import { Onboarding } from "@/components/onboarding";
-export default function OnboardingPage() { return <><AppNav /><Onboarding /></>; }
+import { BuilderDiscovery } from "@/components/builder-discovery";
+export default function OnboardingPage() { return <div className="app-shell"><AppNav /><BuilderDiscovery /></div>; }
