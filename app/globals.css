@@ -204,6 +204,7 @@ html,body { background:var(--bg); color:var(--ink); } body { font-family:Arial, 
 :root { --brand:#ff4fa7; --brand-ink:#391126; --brand-soft:#ffe0f0; --good:#ff4fa7; }
 .button:hover { background:#ff9dca; }.modern-kicker svg,.hero-asterisk,.hero-fineprint svg,.steps-grid svg,.hosting-grid svg,.pricing-card li svg,.pricing-card.featured li svg,.enterprise-strip>svg { color:#e3419a; }
 .board-toolbar i,.board-stats .positive,.job-row b { color:#cf2c85; }.board-logo,.board-title button,.most-popular,.pricing-card.featured .modern-primary { background:#ff4fa7; color:#351021; }.dot-0 { background:#ff4fa7; }.hosting-grid b,.enterprise-strip a,.modern-footer>a:last-child { color:#b51f70; }
+.logo-mark { display:grid; flex:0 0 auto; place-items:center; overflow:hidden; background:#f4f4ef !important; }.logo-mark img { display:block; width:160%; height:160%; max-width:none; object-fit:cover; transform:translate(-16%,-14%); }.modern-brand>span.logo-mark { width:36px; height:36px; border-radius:10px; }.brand-mark.logo-mark { width:36px; height:36px; border-radius:10px; }
 
 /* Live backdrop refraction: SVG displacement is applied to the pixels behind the sticky pill. */
 .liquid-filter-defs { position:absolute; width:0; height:0; overflow:hidden; pointer-events:none; }
