@@ -1,6 +1,6 @@
-# ProjectOS V1
+# Kernova V1
 
-ProjectOS is an adaptive project operating-system demonstration: a user describes their project and receives a schema-validated workspace made from an approved module registry.
+Kernova is an adaptive project operating-system demonstration: a user describes their project and receives a schema-validated workspace made from an approved module registry.
 
 ## What works
 

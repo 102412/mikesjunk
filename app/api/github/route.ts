@@ -6,7 +6,7 @@ const repoSchema = z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/, "Use o
 export async function GET(request: NextRequest) {
   const parsed = repoSchema.safeParse(request.nextUrl.searchParams.get("repo"));
   if (!parsed.success) return NextResponse.json({ error: "A public repository must use owner/repository format." }, { status: 400 });
-  const headers = { Accept: "application/vnd.github+json", "User-Agent": "ProjectOS-local-demo" };
+  const headers = { Accept: "application/vnd.github+json", "User-Agent": "Kernova-local-demo" };
   try {
     const [repositoryResponse, commitsResponse] = await Promise.all([
       fetch(`https://api.github.com/repos/${parsed.data}`, { headers, next: { revalidate: 60 } }),

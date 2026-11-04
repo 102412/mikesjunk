@@ -12,5 +12,5 @@ export function MarketingNav() {
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
-  return <header className={`modern-nav${scrolled ? " is-scrolled" : ""}`}><Link href="/" className="modern-brand"><span>p</span>ProjectOS</Link><nav><a href="#how">How it works</a><a href="#hosting">Hosting</a><a href="#pricing">Pricing</a></nav><Link className="modern-nav-cta" href="/onboarding">Build a dashboard <ArrowRight size={15}/></Link></header>;
+  return <header className={`modern-nav${scrolled ? " is-scrolled" : ""}`}><Link href="/" className="modern-brand"><span>k</span>Kernova</Link><nav><a href="#how">How it works</a><a href="#hosting">Hosting</a><a href="#pricing">Pricing</a></nav><Link className="modern-nav-cta" href="/onboarding">Build a dashboard <ArrowRight size={15}/></Link></header>;
 }

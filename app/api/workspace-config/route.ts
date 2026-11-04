@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const { description, themePreference, model = defaultProjectModel } = parsed.data;
   const apiKey = process.env.OPENAI_API_KEY ?? process.env.OPENAIAPI;
   if (!apiKey) return NextResponse.json({ error: "The AI builder is not configured on this deployment." }, { status: 503 });
-  const prompt = `Generate a JSON workspace plan for ProjectOS from this project description: ${description}\n\nOnly select approved module IDs supplied by the schema. Do not invent integrations, credentials, metrics, code, or permissions. Make the design genuinely fit the stated project. ${themePreference ? `The user explicitly prefers ${themePreference} mode.` : ""}`;
+  const prompt = `Generate a JSON workspace plan for Kernova from this project description: ${description}\n\nOnly select approved module IDs supplied by the schema. Do not invent integrations, credentials, metrics, code, or permissions. Make the design genuinely fit the stated project. ${themePreference ? `The user explicitly prefers ${themePreference} mode.` : ""}`;
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY ?? process.env.OPENAIAPI;
   if (!apiKey) return NextResponse.json({ error: "The AI editor is not configured on this deployment." }, { status: 503 });
   try {
-    const prompt = `You are ProjectOS, a concise project-aware assistant. You may advise only; do not claim access to repositories, deployments, or external accounts. Project: ${workspace.name}. Description: ${workspace.description}. Priorities: ${workspace.priorities.join(", ")}. Enabled modules: ${workspace.modules.join(", ")}. Question: ${question}`;
+    const prompt = `You are Kernova, a concise project-aware assistant. You may advise only; do not claim access to repositories, deployments, or external accounts. Project: ${workspace.name}. Description: ${workspace.description}. Priorities: ${workspace.priorities.join(", ")}. Enabled modules: ${workspace.modules.join(", ")}. Question: ${question}`;
     const response = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ model, reasoning: { effort: "low" }, input: prompt, max_output_tokens: 350 }) });
     if (!response.ok) return NextResponse.json({ error: "The AI editor could not answer this request.", providerStatus: response.status }, { status: 502 });
     const output = await response.json() as Parameters<typeof getResponseText>[0];
