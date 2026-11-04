@@ -16,18 +16,18 @@ const steps = [
 ];
 
 const integrations = [
-  ["OpenAI", "openai", "10A37F"],
-  ["Stripe", "stripe", "635BFF"],
-  ["Apple", "apple", "000000"],
-  ["Google", "google", "4285F4"],
-  ["Google Calendar", "googlecalendar", "4285F4"],
-  ["Slack", "slack", "4A154B"],
-  ["Gmail", "gmail", "EA4335"],
-  ["Notion", "notion", "000000"],
-  ["Airtable", "airtable", "18BFFF"],
-  ["HubSpot", "hubspot", "FF7A59"],
-  ["Linear", "linear", "5E6AD2"],
-  ["GitHub", "github", "181717"],
+  ["OpenAI", "https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/openai.svg"],
+  ["Stripe", "https://cdn.simpleicons.org/stripe/635BFF"],
+  ["Apple", "https://cdn.simpleicons.org/apple/000000"],
+  ["Google", "https://cdn.simpleicons.org/google/4285F4"],
+  ["Google Calendar", "https://cdn.simpleicons.org/googlecalendar/4285F4"],
+  ["Slack", "https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg"],
+  ["Gmail", "https://cdn.simpleicons.org/gmail/EA4335"],
+  ["Notion", "https://cdn.simpleicons.org/notion/000000"],
+  ["Airtable", "https://cdn.simpleicons.org/airtable/18BFFF"],
+  ["HubSpot", "https://cdn.simpleicons.org/hubspot/FF7A59"],
+  ["Linear", "https://cdn.simpleicons.org/linear/5E6AD2"],
+  ["GitHub", "https://cdn.simpleicons.org/github/181717"],
 ] as const;
 
 export function Landing() {
@@ -36,7 +36,7 @@ export function Landing() {
 
     <section className="modern-hero"><div className="hero-copy-modern"><div className="modern-kicker"><Sparkles size={14}/> Dashboard builder, not another dashboard</div><h1>Make the<br/>work <span className="hero-emphasis">visible<span className="hero-asterisk">*</span></span></h1><p>Describe the job. ProjectOS asks the questions a template cannot, then builds a dashboard you can export or keep live for the people who run it.</p><div className="modern-actions"><Link className="modern-primary" href="/onboarding">Start building <ArrowRight size={16}/></Link><a className="modern-text-link" href="#pricing">See hosting plans <ArrowRight size={15}/></a></div><div className="hero-fineprint"><span><Check size={14}/> Exportable code</span><span><Check size={14}/> Hosted when you need it</span><span><Check size={14}/> No subscription to own your work</span></div></div><div className="hero-board" aria-label="Example ProjectOS dashboard"><div className="board-toolbar"><span className="board-logo">P</span><span>Field operations / this week</span><i>Live</i></div><div className="board-main"><aside><span className="side-label">WORKSPACE</span><b>Northside lawn</b><a>Overview</a><a>Schedule</a><a>Customers</a><a>Team</a><a className="active">Settings</a></aside><section><div className="board-title"><div><small>MONDAY, 9:40 AM</small><h2>Everything the crew needs.</h2></div><button>+ New job</button></div><div className="board-stats"><article><span>Today&apos;s jobs</span><b>12</b><small>4 need routing</small></article><article><span>Team live</span><b>08</b><small className="positive">All clocked in</small></article><article><span>Week booked</span><b>84%</b><small>+12% from last week</small></article></div><div className="board-list"><div className="list-head"><span>Today&apos;s route</span><small>7:00—5:00</small></div>{["Hughes / 9:00", "Williams / 10:30", "Dawson / 12:15"].map((job, index) => <div className="job-row" key={job}><i className={`job-dot dot-${index}`}/><span>{job}</span><small>{index === 0 ? "North district" : index === 1 ? "Mowing + edge" : "Estimate"}</small><b>{index === 2 ? "Unassigned" : "On route"}</b></div>)}</div></section></div></div></section>
 
-    <section className="integration-marquee" aria-label="Tools ProjectOS is designed to connect with"><div className="integration-heading"><span>Built to connect</span><p>Bring the tools your operation already runs on.</p></div><div className="integration-viewport"><div className="integration-track">{[...integrations, ...integrations].map(([name, icon, color], index) => <div className="integration-chip" key={`${name}-${index}`} aria-hidden={index >= integrations.length}><img src={`https://cdn.simpleicons.org/${icon}/${color}`} alt="" width="23" height="23"/><span>{name}</span></div>)}</div></div></section>
+    <section className="integration-marquee" aria-label="Tools ProjectOS is designed to connect with"><div className="integration-heading"><span>Built to connect</span><p>Bring the tools your operation already runs on.</p></div><div className="integration-viewport"><div className="integration-track">{[...integrations, ...integrations].map(([name, src], index) => <div className="integration-chip" key={`${name}-${index}`} aria-hidden={index >= integrations.length}><img src={src} alt="" width="23" height="23"/><span>{name}</span></div>)}</div></div></section>
 
     <section className="modern-steps" id="how"><div className="section-label">Built around one good outcome</div><h2>A dashboard should feel like it was made for the work in front of you.</h2><div className="steps-grid">{steps.map(([number, title, copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p><ArrowRight size={17}/></article>)}</div></section>
 
