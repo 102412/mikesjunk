@@ -195,3 +195,7 @@ html,body { background:var(--bg); color:var(--ink); } body { font-family:Arial, 
   .modern-hero,.modern-steps,.hosting-section,.pricing-section { width:calc(100% - 28px); }.modern-hero { padding:52px 0 66px; }.hero-copy-modern h1 { max-width:100%; padding-right:.2em; font-size:clamp(46px,14vw,68px); }.hero-copy-modern h1 > div { display:flex; width:100%; max-width:100%; }.hero-asterisk { right:-.06em; }.modern-actions { align-items:flex-start; flex-direction:column; gap:13px; }.modern-actions .modern-primary { width:100%; }.hero-fineprint { gap:9px; }.modern-steps,.hosting-section,.pricing-section { padding:68px 0; }.modern-steps>h2,.hosting-section h2,.pricing-intro h2 { font-size:clamp(36px,11vw,51px); }.hosting-grid article { padding-right:48px; }.hosting-grid svg { right:0; }.pricing-grid { grid-template-columns:1fr; }.pricing-card { min-height:0; }.pricing-card ul { margin-bottom:25px; }.enterprise-strip { display:grid; }.enterprise-strip a { width:auto; }
 }
 @media(prefers-reduced-motion:reduce) { .integration-track { animation:none; } }
+
+/* A quiet pink counterweight to the lime system, kept diffuse so content remains primary. */
+.modern-marketing { background:radial-gradient(900px 680px at 106% 13%,rgba(255,58,159,.10),transparent 68%),radial-gradient(760px 620px at -10% 70%,rgba(255,58,159,.075),transparent 72%),#f4f4ef; }
+.modern-kicker svg,.hero-asterisk { color:#e3419a; }.modern-text-link:hover { color:#c82f81; }.integration-heading span { color:#c82f81; }.integration-chip img { filter:none !important; }
