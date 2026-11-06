@@ -1,0 +1,18 @@
+services:
+  chromium:
+    image: lscr.io/linuxserver/chromium:latest
+    shm_size: "1gb"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Etc/UTC
+      CUSTOM_USER: "${BROWSER_USER:?Set BROWSER_USER}"
+      PASSWORD: "${BROWSER_PASSWORD:?Set BROWSER_PASSWORD}"
+    volumes:
+      - browser-profile:/config
+    # Only the host's reverse proxy may reach the desktop.
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+volumes:
+  browser-profile:
