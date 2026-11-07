@@ -53,26 +53,63 @@ function normalizePlan(plan: unknown, description: string) {
   });
 }
 
+class ProviderPlanError extends Error {
+  constructor(message: string, readonly status?: number, readonly retryable = false) {
+    super(message);
+  }
+}
+
+function providerMessage(payload: unknown) {
+  if (!payload || typeof payload !== "object") return "The provider returned an unreadable error.";
+  const error = "error" in payload && payload.error && typeof payload.error === "object" ? payload.error as Record<string, unknown> : payload as Record<string, unknown>;
+  return typeof error.message === "string" ? error.message.slice(0, 300) : "The provider returned an unreadable error.";
+}
+
+function publicFailure(status?: number) {
+  if (status === 401) return "Kernova's AI credential was rejected. Check the deployment environment variable and redeploy.";
+  if (status === 403) return "Kernova's AI credential is not permitted to use the selected model.";
+  if (status === 429) return "The AI provider is temporarily rate-limited. Kernova will try again shortly.";
+  return "Kernova could not complete that plan after retrying. Your current preview is unchanged.";
+}
+
+async function createWorkspacePlan(apiKey: string, model: string, prompt: string, description: string) {
+  let failure: ProviderPlanError | null = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, reasoning: { effort: "low" }, input: prompt, max_output_tokens: 700, text: { format: { type: "json_schema", name: "kernova_workspace_plan", strict: true, schema: workspacePlanSchema } } }),
+      });
+      if (!response.ok) {
+        const message = providerMessage(await response.json().catch(() => null));
+        throw new ProviderPlanError(message, response.status, response.status === 429 || response.status >= 500);
+      }
+      const output = await response.json() as Parameters<typeof getResponseText>[0];
+      const outputText = getResponseText(output);
+      if (!outputText) throw new ProviderPlanError("The response did not contain structured output.", undefined, true);
+      return normalizePlan(JSON.parse(outputText), description);
+    } catch (reason) {
+      failure = reason instanceof ProviderPlanError ? reason : new ProviderPlanError("The response could not be parsed as a workspace plan.", undefined, true);
+      console.error("Kernova workspace build attempt failed", { attempt: attempt + 1, status: failure.status, message: failure.message });
+      if (!failure.retryable || attempt === 1) break;
+    }
+  }
+  throw failure ?? new ProviderPlanError("The workspace plan could not be created.");
+}
+
 export async function POST(request: NextRequest) {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Describe the project in a little more detail." }, { status: 400 });
   const { description, themePreference, model = defaultProjectModel } = parsed.data;
   const apiKey = process.env.OPENAI_API_KEY ?? process.env.OPENAIAPI;
   if (!apiKey) return NextResponse.json({ error: "The AI builder is not configured on this deployment." }, { status: 503 });
-  const prompt = `Generate a JSON workspace plan for Kernova from this project description: ${description}\n\nOnly select approved module IDs supplied by the schema. Do not invent integrations, credentials, metrics, code, or permissions. Make the design genuinely fit the stated project. ${themePreference ? `The user explicitly prefers ${themePreference} mode.` : ""}`;
+  const prompt = `Generate a JSON workspace plan for Kernova from this project description: ${description}\n\nOnly select approved module IDs supplied by the schema. Do not invent integrations, credentials, metrics, code, or permissions. Make the design genuinely fit the stated project. Name the dashboard after the stated company, team, or work—not Kernova and not a generic product name. ${themePreference ? `The user explicitly prefers ${themePreference} mode.` : ""}`;
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, reasoning: { effort: "low" }, input: prompt, max_output_tokens: 700, text: { format: { type: "json_schema", name: "projectos_workspace_plan", strict: true, schema: workspacePlanSchema } } }),
-    });
-    if (!response.ok) return NextResponse.json({ error: "The AI builder could not produce a workspace plan.", providerStatus: response.status }, { status: 502 });
-    const output = await response.json() as Parameters<typeof getResponseText>[0];
-    const outputText = getResponseText(output);
-    if (!outputText) throw new Error("No structured output");
-    const config = normalizePlan(JSON.parse(outputText), description);
+    const config = await createWorkspacePlan(apiKey, model, prompt, description);
     return NextResponse.json({ config, mode: "ai", model });
-  } catch {
-    return NextResponse.json({ error: "The AI builder could not produce a valid workspace plan. No dashboard was created." }, { status: 502 });
+  } catch (reason) {
+    const failure = reason instanceof ProviderPlanError ? reason : undefined;
+    return NextResponse.json({ error: publicFailure(failure?.status), code: "AI_WORKSPACE_BUILD_FAILED", providerStatus: failure?.status }, { status: 502 });
   }
 }
