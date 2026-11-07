@@ -5,10 +5,12 @@ import { Apple, ArrowRight, Check, Code2, Download, LoaderCircle, LockKeyhole, M
 import { useEffect, useMemo, useState } from "react";
 import { defaultProjectModel } from "@/lib/project-models";
 import { emptyData, saveData, saveWorkspace } from "@/lib/storage";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { WorkspaceConfig } from "@/lib/workspace-schema";
 
 type Phase = "idea" | "building" | "ready" | "editing" | "error";
 type BuildOperation = { description: string; isEdit: boolean };
+type ProviderState = { configured: boolean; google: boolean; apple: boolean };
 
 const buildSteps = ["Reading your request", "Choosing a practical dashboard structure", "Building the first decision view", "Making the preview usable"];
 
@@ -22,6 +24,11 @@ export function TrialBuilder() {
   const [edits, setEdits] = useState(0);
   const [authOpen, setAuthOpen] = useState(false);
   const [authNotice, setAuthNotice] = useState("");
+  const [authLoading, setAuthLoading] = useState<"google" | "apple" | "email" | null>(null);
+  const [email, setEmail] = useState("");
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [providers, setProviders] = useState<ProviderState | null>(null);
   const [error, setError] = useState("");
   const [lastOperation, setLastOperation] = useState<BuildOperation | null>(null);
 
@@ -29,6 +36,21 @@ export function TrialBuilder() {
     const stored = window.localStorage.getItem("kernova.builder-theme");
     if (stored === "dark" || stored === "light") setTheme(stored);
     if (new URLSearchParams(window.location.search).get("auth") === "export") setAuthOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    void supabase.auth.getUser().then(({ data }) => setAccountEmail(data.user?.email ?? null));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setAccountEmail(session?.user.email ?? null));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    void fetch("/api/auth/providers", { cache: "no-store" })
+      .then(response => response.ok ? response.json() as Promise<ProviderState> : null)
+      .then(setProviders)
+      .catch(() => setProviders({ configured: false, google: false, apple: false }));
   }, []);
 
   const setBuilderTheme = (next: "light" | "dark") => {
@@ -77,13 +99,34 @@ export function TrialBuilder() {
     void runBuild(context, true);
   };
 
+  const callbackUrl = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent("/builder?auth=complete")}`;
+  const startOAuth = async (provider: "google" | "apple") => {
+    if (providers && !providers[provider]) { setAuthNotice(`${provider === "google" ? "Google" : "Apple"} sign-in is not enabled in Kernova's Supabase project yet.`); return; }
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) { setAuthNotice("Supabase is not configured for this deployment yet."); return; }
+    setAuthLoading(provider); setAuthNotice("");
+    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: callbackUrl() } });
+    if (oauthError || !data.url) { setAuthLoading(null); setAuthNotice(oauthError?.message || "The sign-in provider did not return a redirect."); return; }
+    window.location.assign(data.url);
+  };
+
+  const startMagicLink = async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) { setAuthNotice("Supabase is not configured for this deployment yet."); return; }
+    if (!email.trim()) { setAuthNotice("Enter an email address to receive a sign-in link."); return; }
+    setAuthLoading("email"); setAuthNotice("");
+    const { error: emailError } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: callbackUrl() } });
+    setAuthLoading(null);
+    setAuthNotice(emailError ? emailError.message : "Check your inbox for a secure sign-in link.");
+  };
+
   const previewCards = useMemo(() => config?.modules.slice(0, 4) ?? ["schedule", "tasks", "notes", "activity"], [config]);
 
   return <main className={`trial-builder ${theme}`}>
     <header className="trial-nav">
       <Link href="/" className="trial-brand"><span className="logo-mark" aria-hidden="true"><img src="/kernova-logo.png" alt="" /></span><span>Kernova</span></Link>
       <div className="trial-nav-middle"><span className="trial-status"><i /> Trial builder</span><span>1 Sol build · {Math.max(0, 3 - edits)} edits left</span></div>
-      <div className="trial-nav-actions"><button className="theme-toggle" type="button" onClick={() => setBuilderTheme(theme === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button><button className="trial-signin" type="button" onClick={() => setAuthOpen(true)}>Sign in <ArrowRight size={14} /></button></div>
+      <div className="trial-nav-actions"><button className="theme-toggle" type="button" onClick={() => setBuilderTheme(theme === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button><button className="trial-signin" type="button" onClick={() => setAuthOpen(true)}>{accountEmail ? "Account" : "Sign in"} <ArrowRight size={14} /></button></div>
     </header>
 
     <section className="trial-stage">
@@ -107,6 +150,6 @@ export function TrialBuilder() {
       </div>
     </section>
 
-    {authOpen && <div className="auth-backdrop" role="presentation" onMouseDown={() => setAuthOpen(false)}><section className="auth-sheet" role="dialog" aria-modal="true" aria-labelledby="auth-title" onMouseDown={event => event.stopPropagation()}><button className="auth-close" onClick={() => setAuthOpen(false)} aria-label="Close sign in">×</button><span className="trial-eyebrow"><LockKeyhole size={14} /> Save your work</span><h2 id="auth-title">Create an account to keep building.</h2><p>Sign in to save this dashboard to your workspace, unlock the next edit, export your files, or put it online.</p><div className="auth-options"><button type="button" onClick={() => setAuthNotice("Google sign-in will be enabled when the Supabase connection is added.")}><span className="oauth-google">G</span> Continue with Google</button><button type="button" onClick={() => setAuthNotice("Apple sign-in will be enabled when the Supabase connection is added.")}><Apple size={18} /> Continue with Apple</button><button type="button" onClick={() => setAuthNotice("Email sign-in will be enabled when the Supabase connection is added.")}>Continue with email <ArrowRight size={16} /></button></div>{authNotice && <p className="auth-connection-note" role="status">{authNotice}</p>}<p className="auth-legal">By continuing, you agree to Kernova&apos;s <Link href="/legal/terms">Terms of Use</Link> and <Link href="/legal/privacy">Privacy Policy</Link>. When account services are enabled, account and workspace data will be processed through Supabase in accordance with <a href="https://supabase.com/terms" target="_blank" rel="noreferrer">Supabase&apos;s Terms</a> and <a href="https://supabase.com/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</p></section></div>}
+    {authOpen && <div className="auth-backdrop" role="presentation" onMouseDown={() => setAuthOpen(false)}><section className="auth-sheet" role="dialog" aria-modal="true" aria-labelledby="auth-title" onMouseDown={event => event.stopPropagation()}><button className="auth-close" onClick={() => setAuthOpen(false)} aria-label="Close sign in">×</button><span className="trial-eyebrow"><LockKeyhole size={14} /> Save your work</span><h2 id="auth-title">{accountEmail ? "You’re signed in." : "Create an account to keep building."}</h2><p>{accountEmail ? `Signed in as ${accountEmail}. Workspace saving will be enabled with the Supabase data model.` : "Sign in to save this dashboard to your workspace, unlock the next edit, export your files, or put it online."}</p>{!accountEmail && <div className="auth-options"><button type="button" onClick={() => void startOAuth("google")} disabled={authLoading !== null || providers?.google === false}><span className="oauth-google">G</span>{authLoading === "google" ? "Connecting to Google…" : providers?.google === false ? "Google setup pending" : "Continue with Google"}</button><button type="button" onClick={() => void startOAuth("apple")} disabled={authLoading !== null || providers?.apple === false}><Apple size={18} />{authLoading === "apple" ? "Connecting to Apple…" : providers?.apple === false ? "Apple setup pending" : "Continue with Apple"}</button><button type="button" onClick={() => setEmailOpen(current => !current)} disabled={authLoading !== null}>Continue with email <ArrowRight size={16} /></button>{emailOpen && <div className="auth-email"><input value={email} onChange={event => setEmail(event.target.value)} type="email" autoComplete="email" placeholder="you@company.com" aria-label="Email address"/><button type="button" onClick={() => void startMagicLink()} disabled={authLoading === "email"}>{authLoading === "email" ? "Sending…" : "Send sign-in link"}</button></div>}</div>}{providers?.configured === false && <p className="auth-connection-note" role="status">Supabase configuration is not available for this deployment yet.</p>}{authNotice && <p className="auth-connection-note" role="status">{authNotice}</p>}<p className="auth-legal">By continuing, you agree to Kernova&apos;s <Link href="/legal/terms">Terms of Use</Link> and <Link href="/legal/privacy">Privacy Policy</Link>. Account and workspace data are processed through Supabase in accordance with <a href="https://supabase.com/terms" target="_blank" rel="noreferrer">Supabase&apos;s Terms</a> and <a href="https://supabase.com/privacy" target="_blank" rel="noreferrer">Supabase&apos;s Privacy Policy</a>.</p></section></div>}
   </main>;
 }
