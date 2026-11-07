@@ -222,3 +222,24 @@ html,body { background:var(--bg); color:var(--ink); } body { font-family:Arial, 
 .modern-nav.is-scrolled>* { position:relative; z-index:1; }
 .modern-nav.is-scrolled::before { position:absolute; z-index:0; inset:1px; border-radius:inherit; background:linear-gradient(112deg,rgba(255,255,255,.56) 0%,rgba(255,255,255,.16) 25%,rgba(255,79,167,.10) 52%,rgba(255,255,255,.06) 78%); box-shadow:inset 0 1px rgba(255,255,255,.86),inset 1px 0 rgba(255,79,167,.18),inset -1px -1px rgba(255,255,255,.28); content:""; pointer-events:none; }
 @supports (backdrop-filter:url("#kernova-nav-refraction")) { .modern-nav.is-scrolled { backdrop-filter:url("#kernova-nav-refraction") blur(20px) saturate(145%); -webkit-backdrop-filter:url("#kernova-nav-refraction") blur(20px) saturate(145%); } }
+
+/* Independent browser desktop, opened by the navigation's triple click. */
+.browser-trapdoor { position: fixed; inset: 0; width: min(1440px, 96vw); height: 90dvh; max-width: 96vw; max-height: 94dvh; margin: auto; padding: 0; border: 1px solid #354052; border-radius: 18px; background: #10151e; color: #eef2fa; box-shadow: 0 30px 120px #0009; }
+.browser-trapdoor::backdrop { background: #050a14c9; backdrop-filter: blur(12px); }
+.browser-trapdoor[open] { display: flex; flex-direction: column; }
+.browser-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #354052; }
+.browser-toolbar strong { display: block; font-size: 15px; }
+.browser-toolbar span { display: block; font-size: 12px; color: #a9b8cb; }
+.browser-actions { display: flex; gap: 6px; }
+.browser-actions button, .browser-actions a { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #354052; border-radius: 9px; background: #1c2534; color: #eef2fa; cursor: pointer; }
+.browser-actions :is(button,a):focus-visible { outline: 2px solid #99c5ff; outline-offset: 3px; }
+.browser-viewport { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.browser-viewport iframe { width: 100%; flex: 1; min-height: 0; border: 0; background: #10151e; }
+.browser-help { color: #a9b8cb; font-size: 12px; line-height: 1.7; padding: 10px 18px; margin: 0; }
+.browser-connecting { padding: 10px 18px; margin: 0; font-size: 13px; }
+.browser-setup { margin: auto; padding: 32px; max-width: 660px; text-align: center; overflow: auto; }
+.browser-setup h2 { font-size: clamp(22px, 4vw, 32px); margin: 18px 0; }
+.browser-setup p { color: #b7c3d5; line-height: 1.8; margin: 16px 0; }
+.browser-setup code { overflow-wrap: anywhere; color: #d7e8ff; }
+.browser-setup-icon { font-size: 40px; color: #a8caff; }
+@media (max-width: 600px) { .browser-trapdoor { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; } .browser-toolbar { padding: 12px; } .browser-toolbar span { max-width: 125px; } .browser-setup { padding: 24px; } }
