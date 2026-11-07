@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { TrialBuilder } from "@/components/trial-builder";
 
 export default function BuilderPage() {
-  redirect("/onboarding");
+  return <TrialBuilder />;
 }

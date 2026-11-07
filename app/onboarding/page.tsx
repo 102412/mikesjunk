@@ -1,3 +1,2 @@
-import { AppNav } from "@/components/app-nav";
-import { BuilderDiscovery } from "@/components/builder-discovery";
-export default function OnboardingPage() { return <div className="app-shell"><AppNav /><BuilderDiscovery /></div>; }
+import { redirect } from "next/navigation";
+export default function OnboardingPage() { redirect("/builder"); }
