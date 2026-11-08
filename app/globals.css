@@ -272,6 +272,34 @@ html,body { background:var(--bg); color:var(--ink); } body { font-family:Arial, 
 @media (max-width: 700px) { .integration-runtime-card,.integration-primary { grid-template-columns:auto minmax(0,1fr); padding:18px; }.integration-runtime-card>.tag,.integration-runtime-card>.status { grid-column:2; justify-self:start; }.integration-primary .button { grid-column:1 / -1; width:100%; }.integration-catalog-grid { grid-template-columns:1fr; }.integration-provider { padding:14px; } }
 @media(max-width:760px) { .trial-nav-actions { gap:5px; }.trial-nav-actions .connector-menu-trigger { min-height:34px; padding:0 8px; font-size:10px; }.connector-suggestion { grid-template-columns:auto minmax(0,1fr); margin-left:0; }.connector-suggestion>button { grid-column:1 / -1; width:100%; }.integration-list-head { align-items:flex-start; flex-direction:column; }.app-nav-actions { gap:5px; }.app-nav-actions .connector-menu-trigger { width:36px; justify-content:center; overflow:hidden; padding:0; font-size:0; }.app-nav-actions .connector-menu-trigger svg:last-child { display:none; }.builder-head-actions { flex-wrap:wrap; justify-content:flex-end; }.builder-editor header { align-items:center; } }
 
+/* The trial builder is the first screen customers see, so its live preview controls belong here. */
+.trial-stage { width:min(1600px,calc(100% - 40px)); padding:34px 0 48px; }
+.trial-intro { max-width:850px; }.trial-intro h1 { font-size:clamp(38px,4.4vw,62px); }
+.trial-grid { grid-template-columns:minmax(300px, .72fr) minmax(0,1.6fr); gap:10px; margin-top:25px; align-items:stretch; }
+.trial-console,.trial-preview { border-radius:3px; box-shadow:none; }.trial-console { display:flex; min-height:calc(100dvh - 265px); flex-direction:column; }
+.trial-preview { min-height:calc(100dvh - 265px); }
+.trial-start { gap:0; padding:22px; }.trial-start h2 { font-size:25px; }.trial-start p { margin-bottom:15px; }
+.trial-start textarea,.trial-edit-zone textarea { border-radius:3px; }.trial-primary,.trial-secondary { border-radius:3px; }
+.trial-device-label { margin:0 0 7px; color:var(--trial-muted); font-size:11px; font-weight:750; }
+.trial-device-choice { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+.trial-device-choice button { display:inline-flex; align-items:center; gap:6px; min-height:32px; padding:0 9px; border:1px solid var(--trial-line); border-radius:2px; background:var(--trial-surface); color:var(--trial-muted); font-size:10px; font-weight:750; }
+.trial-device-choice button.selected { border-color:var(--trial-pink); background:color-mix(in srgb,var(--trial-pink) 11%,var(--trial-surface)); color:var(--trial-ink); }
+.trial-preview-head-actions { display:flex; align-items:center; gap:10px; }
+.trial-preview-sizes { display:flex; gap:3px; padding:3px; border:1px solid var(--trial-line); }
+.trial-preview-sizes button { display:inline-flex; align-items:center; gap:5px; min-height:28px; padding:0 8px; border:0; background:transparent; color:var(--trial-muted); font-size:9px; font-weight:750; }
+.trial-preview-sizes button.selected { background:var(--trial-ink); color:var(--trial-bg); }
+.trial-preview-device { display:flex; justify-content:center; min-height:calc(100% - 120px); overflow:auto; }
+.trial-preview-screen { position:relative; width:100%; min-height:100%; overflow:auto; background:var(--trial-surface); }
+.trial-preview-device.preview-iphone { width:393px; min-height:680px; margin:12px auto; padding:9px; border:1px solid #252525; border-radius:48px; background:#151515; box-shadow:0 10px 28px rgba(0,0,0,.16); }
+.trial-preview-device.preview-iphone .trial-preview-screen { min-height:660px; border-radius:39px; }
+.trial-dynamic-island { position:absolute; z-index:4; top:11px; left:50%; width:108px; height:29px; border-radius:20px; background:#050505; transform:translateX(-50%); }
+.preview-iphone .trial-dashboard { padding:49px 14px 20px; }.preview-iphone .dashboard-preview-stats { grid-template-columns:1fr; margin-top:15px; }.preview-iphone .dashboard-preview-top h2 { font-size:21px; }.preview-iphone .dashboard-preview-list>div { grid-template-columns:8px 1fr; }.preview-iphone .dashboard-preview-list>div small { display:none; }
+.trial-preview-device.preview-ipad { width:min(820px,100%); min-height:630px; margin:12px auto; padding:9px; border:1px solid #393939; border-radius:22px; background:#252525; }
+.trial-preview-device.preview-ipad .trial-preview-screen { min-height:610px; border-radius:14px; }
+.trial-preview-device.preview-ipad .trial-skeleton { padding:27px; }
+@media(max-width:900px) { .trial-stage { width:calc(100% - 28px); }.trial-grid { grid-template-columns:minmax(270px,.8fr) minmax(0,1.2fr); }.trial-preview-head-actions { gap:4px; }.trial-preview-sizes button { padding:0 5px; }.trial-preview-sizes button span { display:none; } }
+@media(max-width:700px) { .trial-stage { padding:24px 0 36px; }.trial-grid { grid-template-columns:1fr; gap:10px; margin-top:18px; }.trial-console { min-height:500px; }.trial-preview { min-height:75dvh; }.trial-start { padding:18px; }.trial-panel-head { min-height:50px; padding:0 11px; }.trial-preview-head-actions { flex-wrap:wrap; justify-content:flex-end; }.trial-preview-device { min-height:70dvh; }.trial-preview-device.preview-iphone { width:min(393px,calc(100% - 20px)); min-height:70dvh; }.trial-preview-device.preview-iphone .trial-preview-screen { min-height:calc(70dvh - 20px); }.trial-preview-device.preview-ipad { min-height:68dvh; }.trial-preview-device.preview-ipad .trial-preview-screen { min-height:calc(68dvh - 20px); }.trial-device-choice button { flex:1; justify-content:center; }.trial-skeleton { padding:14px; }.skeleton-board { min-height:180px; } }
+
 /* Builder studio layout: compact conversation rail beside an expansive responsive preview. */
 .builder-workspace-page { display:grid; grid-template-columns:minmax(280px,330px) minmax(0,1fr); gap:0; min-height:100dvh; padding:0; background:var(--product-bg) !important; }
 .builder-editor { position:sticky; top:0; display:flex; flex-direction:column; align-self:stretch; width:100%; height:100dvh; max-height:100dvh; margin:0; padding:17px; border-width:0 1px 0 0 !important; border-radius:0 !important; box-shadow:none !important; overflow:hidden; }
