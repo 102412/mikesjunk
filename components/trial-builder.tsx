@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Apple, ArrowRight, Check, Code2, Download, LayoutDashboard, LoaderCircle, LockKeyhole, Moon, PencilLine, RotateCcw, Send, Sun, Monitor, Smartphone, Tablet } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { defaultProjectModel } from "@/lib/project-models";
 import { emptyData, saveData, saveWorkspace } from "@/lib/storage";
@@ -26,6 +27,7 @@ const buildSteps = ["Reading your request", "Choosing a practical dashboard stru
 
 export function TrialBuilder() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const reduceMotion = useReducedMotion();
   const [request, setRequest] = useState("");
   const [edit, setEdit] = useState("");
   const [phase, setPhase] = useState<Phase>("idea");
@@ -218,7 +220,7 @@ export function TrialBuilder() {
     <header className="trial-nav">
       <Link href="/" className="trial-brand"><span className="logo-mark" aria-hidden="true"><img src="/kernova-logo.png" alt="" /></span><span>Kernova</span></Link>
       <div className="trial-nav-middle"><span>{account ? `${account.credits.build_credits} build credits · ${account.credits.edit_credits} edit credits` : `1 Sol build · ${Math.max(0, 3 - edits)} edits left`}</span></div>
-      <div className="trial-nav-actions"><ConnectorMenu onAdded={connector => setPlannedConnectors(current => current.includes(connector.id) ? current : [...current, connector.id])}/><button className="theme-toggle" type="button" onClick={() => setBuilderTheme(theme === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button><button className="trial-signin" type="button" onClick={() => setAuthOpen(true)}>{accountEmail ? "Account" : "Sign in"} <ArrowRight size={14} /></button></div>
+      <div className="trial-nav-actions"><ConnectorMenu onAdded={connector => setPlannedConnectors(current => current.includes(connector.id) ? current : [...current, connector.id])}/><button className="theme-toggle" type="button" onClick={() => setBuilderTheme(theme === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}><AnimatePresence mode="wait" initial={false}><motion.span key={theme} className="theme-toggle-icon" initial={reduceMotion ? false : { opacity: 0, scale: theme === "light" ? 0.35 : 0.7, rotate: theme === "light" ? -75 : -30, y: theme === "dark" ? -9 : 0 }} animate={{ opacity: 1, scale: 1, rotate: 0, y: 0 }} exit={reduceMotion ? undefined : theme === "light" ? { opacity: 0, y: 18, rotate: 65, scale: 0.55 } : { opacity: 0, scale: 1.7, rotate: 55 }} transition={{ duration: reduceMotion ? 0 : 0.34, ease: [0.22, 0.68, 0, 1.16] }} aria-hidden="true">{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</motion.span></AnimatePresence></button><button className="trial-signin" type="button" onClick={() => setAuthOpen(true)}>{accountEmail ? "Account" : "Sign in"} <ArrowRight size={14} /></button></div>
     </header>
 
     <section className="trial-stage">

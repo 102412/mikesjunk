@@ -688,3 +688,55 @@ button:hover svg.lucide-arrow-right,a:hover svg.lucide-arrow-right { transform:t
   .blueprint-list li { grid-template-columns:8px minmax(0,1fr); }
   .blueprint-list li>small { grid-column:2; }
 }
+
+/* A complete night palette for the trial builder and the live dashboard it contains. */
+.trial-builder.dark {
+  --trial-bg:#10141c;
+  --trial-surface:#171d27;
+  --trial-raised:#1d2531;
+  --trial-ink:#f3f5f9;
+  --trial-muted:#aeb8c8;
+  --trial-line:#354153;
+  --trial-soft:#222c39;
+  --trial-pink:#ff83c3;
+  --trial-pink-ink:#301224;
+  --product-bg:#10141c;
+  --product-paper:#171d27;
+  --product-ink:#f3f5f9;
+  --product-muted:#aeb8c8;
+  --product-line:#354153;
+  --product-soft:#222c39;
+  --product-pink:#ff83c3;
+  --product-pink-ink:#301224;
+  --product-shadow:0 20px 52px rgba(0,0,0,.28);
+  color:var(--trial-ink) !important;
+  color-scheme:dark;
+  background:radial-gradient(ellipse 760px 420px at 88% -5%,rgba(255,131,195,.075),transparent 72%),var(--trial-bg) !important;
+}
+.trial-builder.dark .trial-nav { border-color:var(--trial-line); background:rgba(16,20,28,.9); box-shadow:0 8px 28px rgba(0,0,0,.14); color:var(--trial-ink); }
+.trial-builder.dark .trial-intro h1,.trial-builder.dark .trial-start h2,.trial-builder.dark .dashboard-preview-top h2,.trial-builder.dark .auth-sheet h2 { color:var(--trial-ink); }
+.trial-builder.dark .trial-eyebrow,.trial-builder.dark .trial-activity .complete svg,.trial-builder.dark .export-callout>svg { color:#ff91ca; }
+.trial-builder.dark .trial-console,.trial-builder.dark .trial-preview { border-color:var(--trial-line); background:var(--trial-surface); box-shadow:0 22px 55px rgba(0,0,0,.2); }
+.trial-builder.dark .trial-panel-head,.trial-builder.dark .trial-edit-zone,.trial-builder.dark .trial-code,.trial-builder.dark .trial-preview-device { border-color:var(--trial-line); }
+.trial-builder.dark .trial-primary { background:var(--trial-pink) !important; color:var(--trial-pink-ink) !important; }
+.trial-builder.dark .trial-primary:hover:not(:disabled) { background:#ffa5d3 !important; }
+.trial-builder.dark .trial-prompt-orb { background:var(--trial-pink); color:var(--trial-pink-ink); }
+.trial-builder.dark .trial-error { border-color:#75415e; background:#291a27; color:var(--trial-ink); }
+.trial-builder.dark .export-callout { border-color:var(--trial-line); background:#251c2a; }
+.trial-builder.dark .export-callout button { border-color:var(--trial-line); background:var(--trial-raised); color:var(--trial-ink); }
+.trial-builder.dark .auth-backdrop { background:rgba(4,7,12,.76); }
+.trial-builder.dark .auth-sheet { border-color:var(--trial-line); background:var(--trial-surface); color:var(--trial-ink); }
+.trial-builder.dark .auth-options button { border-color:var(--trial-line); background:var(--trial-raised); color:var(--trial-ink); }
+.trial-builder.dark .auth-options .apple-coming { border-color:#000; background:#000; color:#fff; }
+.trial-builder.dark .auth-email input { border-color:var(--trial-line); background:var(--trial-raised); color:var(--trial-ink); }
+.trial-builder.dark .auth-legal a { color:var(--trial-pink); }
+.trial-builder.dark .account-summary { border-color:var(--trial-line); background:var(--trial-raised); }
+.trial-builder.dark .connector-menu-trigger,.trial-builder.dark .connector-menu-popover { border-color:var(--trial-line); background:var(--trial-surface); color:var(--trial-ink); }
+.trial-builder.dark .connector-menu-trigger:hover,.trial-builder.dark .connector-menu-trigger[aria-expanded="true"] { border-color:#b05a8a; background:#262132; }
+.trial-builder.dark .connector-menu-copy { border-color:var(--trial-line); }
+.trial-builder.dark .connector-menu-copy span,.trial-builder.dark .connector-menu-item small { color:var(--trial-muted); }
+.trial-builder.dark .connector-menu-item { color:var(--trial-ink); }
+.trial-builder.dark .connector-menu-item:hover { background:#282333; }
+.theme-toggle { position:relative; display:grid; place-items:center; overflow:hidden; }
+.theme-toggle-icon { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; }
+.theme-toggle-icon svg { display:block; }
