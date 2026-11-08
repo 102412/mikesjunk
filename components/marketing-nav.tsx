@@ -41,5 +41,5 @@ export function MarketingNav() {
       navigationTimer.current = null;
       router.push("/builder");
     }, 450);
-  }}>Build a dashboard <ArrowRight size={15}/></Link></div></header>{browserOpen && <BrowserTrapdoor onClose={() => setBrowserOpen(false)}/>}</>;
+  }}><span className="nav-cta-full">Build a dashboard</span><span className="nav-cta-short">Build</span><ArrowRight size={15}/></Link></div></header>{browserOpen && <BrowserTrapdoor onClose={() => setBrowserOpen(false)}/>}</>;
 }
