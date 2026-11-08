@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarDays, CheckCircle2, CircleAlert, KeyRound, Landmark, Mail, MessageSquare, Sheet, Sparkles } from "lucide-react";
+import { CalendarDays, CheckCircle2, CircleAlert, ContactRound, KeyRound, Landmark, Mail, MessageSquare, Sheet } from "lucide-react";
 import { activepiecesProviders, type IntegrationRuntimeStatus } from "@/lib/integration-runtime";
 import { ConnectorConsent, ConnectorMenu } from "@/components/connector-controls";
 import type { Connector } from "@/lib/connectors";
 
-const icons = { "google-calendar": CalendarDays, gmail: Mail, slack: MessageSquare, stripe: Landmark, quickbooks: Landmark, hubspot: Sparkles, "google-sheets": Sheet, notion: Sheet } as const;
+const icons = { "google-calendar": CalendarDays, gmail: Mail, slack: MessageSquare, stripe: Landmark, quickbooks: Landmark, hubspot: ContactRound, "google-sheets": Sheet, notion: Sheet } as const;
 
 const setupCopy: Record<Exclude<IntegrationRuntimeStatus["reason"], "ready">, string> = {
   missing_url: "The self-hosted integration runtime has not been assigned a secure URL yet.",

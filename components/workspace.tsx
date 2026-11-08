@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Bot, Check, CheckSquare, ChevronRight, CircleAlert, FileText, Github, Layers3, Link2, Plus, Sparkles, Target, Trash2 } from "lucide-react";
+import { Bot, Check, CheckSquare, ChevronRight, CircleAlert, CircleDot, FileText, Github, Layers3, Link2, Plus, Target, Trash2 } from "lucide-react";
 import { type ModuleId, type WorkspaceConfig } from "@/lib/workspace-schema";
 import { type WorkspaceData, readData, readWorkspace, saveData, type Task } from "@/lib/storage";
 import { WorkspaceMetrics, WorkspaceViews } from "@/components/workspace-blueprint";
@@ -43,7 +43,7 @@ export function Workspace({ embedded = false }: { embedded?: boolean }) {
     <section className="mission-panel glass-card"><div className="mission-top"><span className="mission-label"><Target size={15}/> TODAY’S AIM</span><span className="mission-live"><i/> Planning room</span></div><h2>{config.headline ?? track.mission}</h2><div className="mission-grid"><div><span>Start here</span><b>{track.left}</b></div><div><span>Then</span><b>{track.right}</b></div><div className="mission-progress"><span>{done}/{data.tasks.length || 0} actions complete</span><div><i style={{ width: `${data.tasks.length ? Math.round((done / data.tasks.length) * 100) : 0}%` }}/></div></div></div></section>
     <WorkspaceMetrics config={config}/><WorkspaceViews config={config}/>
     <section className="focus-grid"><div className="focus-card glass-card"><span>First priority</span><b>{config.priorities[0]}</b><p>This is a planning signal from your brief—not a live external metric.</p></div><div className="focus-card glass-card"><span>Dashboard shape</span><b>{config.dashboardKind ?? "general"}</b><p>Suggested from the work you described.</p></div><div className="focus-card glass-card"><span>Quick move</span><button onClick={() => document.getElementById("next-actions")?.scrollIntoView({ behavior: "smooth" })}>Add a next action <ChevronRight size={15}/></button></div></section>
-    <div className="notice"><Sparkles size={15}/><span>This is your working space.</span> Add real context here; connected data stays explicitly labeled.</div><div className="module-grid">{config.modules.map(id => <div id={id === "tasks" ? "next-actions" : undefined} key={id}><Module id={id}>{content[id]}</Module></div>)}</div>
+    <div className="notice"><CircleDot size={15}/><span>This is your working space.</span> Add real context here; connected data stays explicitly labeled.</div><div className="module-grid">{config.modules.map(id => <div id={id === "tasks" ? "next-actions" : undefined} key={id}><Module id={id}>{content[id]}</Module></div>)}</div>
   </main>;
 }
 

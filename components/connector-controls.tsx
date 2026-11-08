@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { CalendarDays, Check, ChevronDown, CirclePlus, Landmark, Mail, MessageSquare, Sheet, Sparkles, X } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, CirclePlus, ContactRound, Landmark, Mail, MessageSquare, Sheet, X } from "lucide-react";
 import { connectorCatalog, type Connector, type ConnectorId } from "@/lib/connectors";
 
-const icons = { "google-calendar": CalendarDays, gmail: Mail, slack: MessageSquare, stripe: Landmark, quickbooks: Landmark, hubspot: Sparkles, "google-sheets": Sheet, notion: Sheet } as const;
+const icons = { "google-calendar": CalendarDays, gmail: Mail, slack: MessageSquare, stripe: Landmark, quickbooks: Landmark, hubspot: ContactRound, "google-sheets": Sheet, notion: Sheet } as const;
 
 type ConnectorControlProps = {
   onAdded?: (connector: Connector) => void;
