@@ -2,10 +2,18 @@
 
 1. Open **Supabase Dashboard → SQL Editor → New query** for the Kernova project.
 2. Paste and run [`schema.sql`](./schema.sql).
-3. In **Authentication → URL Configuration**, keep these redirect URLs:
+3. Paste and run [`google-calendar.sql`](./google-calendar.sql) before enabling the Calendar connection. It adds a server-only, RLS-protected token store; browser clients cannot read it.
+4. In **Authentication → URL Configuration**, keep these redirect URLs:
    - `https://kernovaai.vercel.app/auth/callback`
    - `http://localhost:3030/auth/callback`
-4. In **Authentication → Providers → Google**, leave Google enabled and save the client ID and secret there. Do not add either value to this repository.
+5. In **Authentication → Providers → Google**, leave Google enabled and save the client ID and secret there. Do not add either value to this repository.
+
+For the direct Google Calendar connection, add these to the Google Cloud OAuth web client's **Authorized redirect URIs** (not JavaScript origins):
+
+- `https://kernovaai.vercel.app/api/integrations/google-calendar/callback`
+- `http://localhost:3035/api/integrations/google-calendar/callback`
+
+Set `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_OAUTH_STATE_SECRET`, `INTEGRATION_TOKEN_ENCRYPTION_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` as server-only Vercel environment variables. The last two must never be shared with a browser or committed.
 
 What the script provisions:
 

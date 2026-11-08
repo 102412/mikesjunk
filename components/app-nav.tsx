@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  ["Builder", "/onboarding"], ["Live preview", "/builder/workspace"], ["Export", "/export"],
+  ["Builder", "/builder"], ["Workspace", "/builder/workspace"], ["Connections", "/integrations"], ["Export", "/export"],
 ] as const;
 
 export function AppNav() {
   const path = usePathname();
-  return <nav className="app-nav"><div className="app-nav-inner">
-    <Link className="brand" href="/"><span className="brand-mark logo-mark" aria-hidden="true"><img src="/kernova-logo.png" alt=""/></span>Kernova</Link>
-    <div className="app-links">{links.map(([label, href]) => <Link key={href} style={path === href ? { color: "var(--ink)", background: "var(--surface-raised)", boxShadow: "inset 0 0 0 1px var(--line)" } : {}} href={href}>{label}</Link>)}</div>
-    <Link className="button-quiet" href="/onboarding">New dashboard</Link>
+  return <nav className="app-nav" aria-label="Product navigation"><div className="app-nav-inner">
+    <Link className="brand" href="/"><span className="brand-mark logo-mark" aria-hidden="true"><img src="/kernova-logo.png" alt="" width="36" height="36"/></span><span>Kernova</span></Link>
+    <div className="app-links">{links.map(([label, href]) => <Link key={href} data-active={path === href ? "true" : undefined} href={href}>{label}</Link>)}</div>
+    <Link className="button-quiet" href="/builder">New dashboard</Link>
   </div></nav>;
 }

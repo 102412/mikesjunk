@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { AppNav } from "@/components/app-nav";
+import { DashboardExport } from "@/components/dashboard-export";
 
 export default function ExportPage() {
-  redirect("/builder?auth=export");
+  return <div className="app-shell"><AppNav /><DashboardExport /></div>;
 }
