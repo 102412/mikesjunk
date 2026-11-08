@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { CalendarDays, CheckCircle2, CircleAlert, KeyRound, Landmark, Mail, MessageSquare, Sheet, Sparkles } from "lucide-react";
 import { activepiecesProviders, type IntegrationRuntimeStatus } from "@/lib/integration-runtime";
+import { ConnectorConsent, ConnectorMenu } from "@/components/connector-controls";
+import type { Connector } from "@/lib/connectors";
 
 const icons = { "google-calendar": CalendarDays, gmail: Mail, slack: MessageSquare, stripe: Landmark, quickbooks: Landmark, hubspot: Sparkles, "google-sheets": Sheet, notion: Sheet } as const;
 
@@ -16,6 +18,7 @@ export function IntegrationCatalog() {
   const [runtime, setRuntime] = useState<IntegrationRuntimeStatus | null>(null);
   const [calendarConfigured, setCalendarConfigured] = useState<boolean | null>(null);
   const [calendarNotice, setCalendarNotice] = useState<string | null>(null);
+  const [selectedConnector, setSelectedConnector] = useState<Connector | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -62,6 +65,7 @@ export function IntegrationCatalog() {
       <CircleAlert size={16} aria-hidden="true" />
       <p><strong>What this changes:</strong> each service is connected only after its owner gives consent. Calendar tokens are encrypted before storage and are never sent to dashboard browser code.</p>
     </section>
+    <header className="integration-list-head"><div><span className="eyebrow">Connector catalog</span><h2>Choose a service</h2><p>Every connection asks for your agreement before authorization or adding it to your dashboard plan.</p></div><ConnectorMenu/></header>
     <section className="integration-primary" aria-labelledby="calendar-connect-heading">
       <div className="integration-provider-icon"><CalendarDays size={20} /></div>
       <div className="integration-primary-copy">
@@ -70,8 +74,8 @@ export function IntegrationCatalog() {
         <p>Bring your authorized calendars into a generated dashboard. Kernova asks only to view calendars and events—never to create, change, or delete them.</p>
         {calendarNotice && <p className="auth-connection-note" role="status">{calendarNotice}</p>}
       </div>
-      <button className="button" type="button" disabled={calendarConfigured !== true} onClick={() => { window.location.assign("/api/integrations/google-calendar/connect"); }}>
-        {calendarConfigured === null ? "Checking setup…" : calendarConfigured ? "Connect Google Calendar" : "Server setup required"}
+      <button className="button" type="button" disabled={calendarConfigured !== true} onClick={() => { const calendar = activepiecesProviders.find(provider => provider.id === "google-calendar"); if (calendar) setSelectedConnector(calendar); }}>
+        {calendarConfigured === null ? "Checking setup…" : calendarConfigured ? "Review & connect" : "Server setup required"}
       </button>
     </section>
     <section className="integration-catalog-grid" aria-label="Available integration recipes">
@@ -80,9 +84,10 @@ export function IntegrationCatalog() {
         return <article className="integration-provider" key={provider.id}>
           <div className="integration-provider-icon"><Icon size={18} /></div>
           <div className="integration-provider-copy"><span>{provider.category}</span><h3>{provider.name}</h3><p>{provider.mode}</p></div>
-          <button className="button-quiet" type="button" disabled title="This provider will be added as a direct connection after the Calendar pilot is proven.">Coming next</button>
+          <button className="button-quiet" type="button" onClick={() => setSelectedConnector(provider)}>Review & add</button>
         </article>;
       })}
     </section>
+    {selectedConnector && <ConnectorConsent connector={selectedConnector} onClose={() => setSelectedConnector(null)} />}
   </>;
 }

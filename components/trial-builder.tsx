@@ -7,6 +7,8 @@ import { defaultProjectModel } from "@/lib/project-models";
 import { emptyData, saveData, saveWorkspace } from "@/lib/storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { WorkspaceConfig } from "@/lib/workspace-schema";
+import { ConnectorMenu, ConnectorSuggestion } from "@/components/connector-controls";
+import { detectConnectorRequests, type ConnectorId } from "@/lib/connectors";
 
 type Phase = "idea" | "building" | "ready" | "editing" | "error";
 type BuildOperation = { description: string; isEdit: boolean };
@@ -39,6 +41,8 @@ export function TrialBuilder() {
   const [dashboardId, setDashboardId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [lastOperation, setLastOperation] = useState<BuildOperation | null>(null);
+  const [plannedConnectors, setPlannedConnectors] = useState<ConnectorId[]>([]);
+  const detectedConnectors = detectConnectorRequests(`${request} ${edit}`).filter(connector => !plannedConnectors.includes(connector.id));
 
   useEffect(() => {
     const stored = window.localStorage.getItem("kernova.builder-theme");
@@ -169,7 +173,7 @@ export function TrialBuilder() {
     <header className="trial-nav">
       <Link href="/" className="trial-brand"><span className="logo-mark" aria-hidden="true"><img src="/kernova-logo.png" alt="" /></span><span>Kernova</span></Link>
       <div className="trial-nav-middle"><span className="trial-status"><i /> {account ? `${account.profile.tier} account` : "Trial builder"}</span><span>{account ? `${account.credits.build_credits} build credits · ${account.credits.edit_credits} edit credits` : `1 Sol build · ${Math.max(0, 3 - edits)} edits left`}</span></div>
-      <div className="trial-nav-actions"><button className="theme-toggle" type="button" onClick={() => setBuilderTheme(theme === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button><button className="trial-signin" type="button" onClick={() => setAuthOpen(true)}>{accountEmail ? "Account" : "Sign in"} <ArrowRight size={14} /></button></div>
+      <div className="trial-nav-actions"><ConnectorMenu onAdded={connector => setPlannedConnectors(current => current.includes(connector.id) ? current : [...current, connector.id])}/><button className="theme-toggle" type="button" onClick={() => setBuilderTheme(theme === "light" ? "dark" : "light")} aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button><button className="trial-signin" type="button" onClick={() => setAuthOpen(true)}>{accountEmail ? "Account" : "Sign in"} <ArrowRight size={14} /></button></div>
     </header>
 
     <section className="trial-stage">
@@ -183,6 +187,7 @@ export function TrialBuilder() {
         <section className="trial-console">
           <div className="trial-panel-head"><span><Code2 size={15} /> Builder conversation</span><small>GPT-6.1 Sol</small></div>
           {phase === "idea" ? <div className="trial-start"><div className="trial-prompt-orb"><Sparkles size={21} /></div><h2>What should this dashboard make easier?</h2><p>Use plain language. Mention the team, the work, and the decisions that need to happen faster.</p><textarea value={request} onChange={event => setRequest(event.target.value)} placeholder="Example: I run a lawn-care crew and need jobs, routes, client notes, estimates, and team availability in one place." aria-label="Describe the dashboard you want" /><button className="trial-primary" type="button" onClick={begin} disabled={request.trim().length < 12}>Build my dashboard <ArrowRight size={16} /></button><small className="trial-safe-note">No account required for this first build. Nothing is published or shared.</small></div> : <><div className="trial-activity" aria-live="polite">{buildSteps.map((item, index) => <div className={index <= step ? "complete" : ""} key={item}>{index < step || phase === "ready" ? <Check size={15} /> : index === step && (phase === "building" || phase === "editing") ? <LoaderCircle className="spin" size={15} /> : <i />}{item}</div>)}</div><div className="trial-code" aria-label="Current dashboard manifest"><span>dashboard.ts</span><pre>{config ? JSON.stringify({ name: config.name, layout: config.layout, modules: config.modules }, null, 2) : "Preparing dashboard…"}</pre></div>{phase === "error" && <div className="trial-error"><b>Build paused. Your current preview is unchanged.</b><p>{error}</p><button className="trial-secondary" onClick={() => lastOperation && void runBuild(lastOperation.description, lastOperation.isEdit)} disabled={!lastOperation}>Try the same request again</button></div>}<div className="trial-edit-zone"><div><span>Shape the next version</span><b>{edits}/3 trial changes used</b></div><textarea value={edit} onChange={event => setEdit(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); submitEdit(); } }} placeholder={edits >= 3 ? "Your next change unlocks with a free account" : "e.g. Add a crew map, show overdue estimates first, and make it easier on a phone"} aria-label="Request a dashboard change" /><button className="trial-primary" type="button" onClick={submitEdit} disabled={!edit.trim() || phase === "building" || phase === "editing"}>{edits >= 3 ? <><LockKeyhole size={15} /> Create account to continue</> : <><WandSparkles size={15} /> Apply change</>}</button></div></>}
+          {detectedConnectors.map(connector => <ConnectorSuggestion key={connector.id} connectorId={connector.id} onAdded={added => setPlannedConnectors(current => current.includes(added.id) ? current : [...current, added.id])}/>)}
         </section>
 
         <section className="trial-preview">

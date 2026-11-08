@@ -1,13 +1,7 @@
-export const activepiecesProviders = [
-  { id: "google-calendar", name: "Google Calendar", category: "Scheduling", mode: "OAuth" },
-  { id: "gmail", name: "Gmail", category: "Communication", mode: "OAuth" },
-  { id: "slack", name: "Slack", category: "Communication", mode: "OAuth" },
-  { id: "stripe", name: "Stripe", category: "Payments", mode: "API / OAuth" },
-  { id: "quickbooks", name: "QuickBooks", category: "Finance", mode: "OAuth" },
-  { id: "hubspot", name: "HubSpot", category: "CRM", mode: "OAuth" },
-  { id: "google-sheets", name: "Google Sheets", category: "Operations", mode: "OAuth" },
-  { id: "notion", name: "Notion", category: "Operations", mode: "OAuth" },
-] as const;
+import { connectorCatalog } from "@/lib/connectors";
+
+/** Backwards-compatible runtime catalogue. Connector policy lives in one shared registry. */
+export const activepiecesProviders = connectorCatalog;
 
 export type IntegrationRuntimeStatus = {
   provider: "activepieces";
