@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 function enabled(value: unknown) {
+  if (value === true) return true;
   return Boolean(value && typeof value === "object" && "enabled" in value && (value as { enabled?: unknown }).enabled === true);
 }
 
