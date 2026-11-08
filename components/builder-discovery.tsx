@@ -6,6 +6,7 @@ import { useState } from "react";
 import { saveBuilderSession } from "@/lib/builder-session";
 import { detectConnectorRequests, type ConnectorId } from "@/lib/connectors";
 import { ConnectorMenu, ConnectorSuggestion } from "@/components/connector-controls";
+import { Monitor, Smartphone, Tablet } from "lucide-react";
 
 const questions = [
   "Who needs to use this workspace on a normal day?",
@@ -13,6 +14,7 @@ const questions = [
   "What information must be visible in the first minute?",
   "Which tools, links, or routines should it keep organized?",
 ];
+type DevicePreference = "desktop" | "ipad" | "mobile";
 
 type Message = { role: "assistant" | "user"; text: string };
 
@@ -23,6 +25,7 @@ export function BuilderDiscovery() {
   const [input, setInput] = useState("");
   const [started, setStarted] = useState(false);
   const [plannedConnectors, setPlannedConnectors] = useState<ConnectorId[]>([]);
+  const [devicePreference, setDevicePreference] = useState<DevicePreference>("desktop");
   const detectedConnectors = detectConnectorRequests(`${brief} ${answers.join(" ")}`);
 
   const messages: Message[] = started
@@ -47,9 +50,9 @@ export function BuilderDiscovery() {
 
   const go = () => {
     const connectors = plannedConnectors.map(id => `- ${id}`).join("\n");
-    saveBuilderSession({ brief: `${brief.trim()}${connectors ? `\n\nApproved connector preferences:\n${connectors}` : ""}`, answers, createdAt: new Date().toISOString() });
+    saveBuilderSession({ brief: `${brief.trim()}\n\nPrimary device: ${devicePreference}${connectors ? `\n\nApproved connector preferences:\n${connectors}` : ""}`, answers, createdAt: new Date().toISOString() });
     router.push("/builder/live");
   };
 
-  return <main className="builder-flow"><section className="builder-discovery-shell"><header className="builder-flow-head"><div><span>KERNOVA / DISCOVERY</span><h1>Give the builder the real work.</h1><p>Plain language is enough. A few focused questions turn it into a dashboard with a point of view.</p></div><div className="builder-head-actions"><ConnectorMenu onAdded={(connector) => setPlannedConnectors(current => current.includes(connector.id) ? current : [...current, connector.id])}/><div className="builder-stage"><Bot size={16}/> AI scope</div></div></header><div className="discovery-thread" aria-live="polite">{messages.map((message, index) => <div className={`discovery-message ${message.role}`} key={`${message.text}-${index}`}><span>{message.role === "assistant" ? "K" : "You"}</span><p>{message.text}</p></div>)}{detectedConnectors.filter(connector => !plannedConnectors.includes(connector.id)).map(connector => <ConnectorSuggestion key={connector.id} connectorId={connector.id} onAdded={(added) => setPlannedConnectors(current => current.includes(added.id) ? current : [...current, added.id])}/>)}</div>{!started ? <div className="discovery-composer"><label className="sr-only" htmlFor="project-brief">Describe your project</label><textarea id="project-brief" value={brief} onChange={event => setBrief(event.target.value)} placeholder="Example: I’m running a product launch and need a clear place for the roadmap, customer feedback, launch tasks, and release decisions…" aria-label="Describe your project"/><button className="button" onClick={start} disabled={brief.trim().length < 12}>Start scoping <ArrowRight size={15}/></button></div> : answers.length < questions.length ? <div className="discovery-composer compact"><label className="sr-only" htmlFor="scope-answer">Answer this question</label><input id="scope-answer" autoFocus value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => event.key === "Enter" && answer()} placeholder="Answer in your own words…" aria-label={`Answer question ${answers.length + 1}`}/><button className="button" onClick={answer} disabled={!input.trim()}><Send size={15}/> Continue</button></div> : <div className="builder-go-time"><div><Check size={17}/><span><b>Scope complete.</b> Kernova will build a focused first version from this brief.</span></div><button className="button" onClick={go}>It’s go time <ArrowRight size={16}/></button></div>}</section></main>;
+  return <main className="builder-flow"><section className="builder-discovery-shell"><header className="builder-flow-head"><div><span>KERNOVA / DISCOVERY</span><h1>Give the builder the real work.</h1><p>Plain language is enough. A few focused questions turn it into a dashboard with a point of view.</p></div><div className="builder-head-actions"><ConnectorMenu onAdded={(connector) => setPlannedConnectors(current => current.includes(connector.id) ? current : [...current, connector.id])}/><div className="builder-stage"><Bot size={16}/> AI scope</div></div></header><div className="discovery-thread" aria-live="polite">{messages.map((message, index) => <div className={`discovery-message ${message.role}`} key={`${message.text}-${index}`}><span>{message.role === "assistant" ? "K" : "You"}</span><p>{message.text}</p></div>)}{detectedConnectors.filter(connector => !plannedConnectors.includes(connector.id)).map(connector => <ConnectorSuggestion key={connector.id} connectorId={connector.id} onAdded={(added) => setPlannedConnectors(current => current.includes(added.id) ? current : [...current, added.id])}/>)}</div>{!started ? <><div className="device-preference" role="group" aria-label="Primary dashboard device"><span>Primary device</span>{([ ["desktop", "Desktop", Monitor], ["ipad", "iPad", Tablet], ["mobile", "Mobile", Smartphone] ] as const).map(([id,label,Icon]) => <button key={id} type="button" className={devicePreference === id ? "selected" : ""} aria-pressed={devicePreference === id} onClick={() => setDevicePreference(id)}><Icon size={15}/>{label}</button>)}</div><div className="discovery-composer"><label className="sr-only" htmlFor="project-brief">Describe your project</label><textarea id="project-brief" value={brief} onChange={event => setBrief(event.target.value)} placeholder="Example: I’m running a product launch and need a clear place for the roadmap, customer feedback, launch tasks, and release decisions…" aria-label="Describe your project"/><button className="button" onClick={start} disabled={brief.trim().length < 12}>Start scoping <ArrowRight size={15}/></button></div></> : answers.length < questions.length ? <div className="discovery-composer compact"><label className="sr-only" htmlFor="scope-answer">Answer this question</label><input id="scope-answer" autoFocus value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => event.key === "Enter" && answer()} placeholder="Answer in your own words…" aria-label={`Answer question ${answers.length + 1}`}/><button className="button" onClick={answer} disabled={!input.trim()}><Send size={15}/> Continue</button></div> : <div className="builder-go-time"><div><Check size={17}/><span><b>Scope complete.</b> Kernova will build a focused first version from this brief.</span></div><button className="button" onClick={go}>It’s go time <ArrowRight size={16}/></button></div>}</section></main>;
 }
