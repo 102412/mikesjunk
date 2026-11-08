@@ -55,7 +55,7 @@ export function BuilderWorkspace() {
         setMessages(current => [...current, { id: crypto.randomUUID(), role: "assistant", text: result.answer }]);
       } else {
         const description = (editorMode === "rebuild" ? request : `${config.description}\n\nRequested change: ${request}`).slice(0, 1500);
-        const response = await fetch("/api/workspace-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description, model }) });
+        const response = await fetch("/api/workspace-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description, originalPrompt: editorMode === "rebuild" ? request : config.originalPrompt ?? config.description, model }) });
         const result = await response.json();
         if (!response.ok || !result.config) throw new Error("Plan unavailable");
         saveWorkspace(result.config);

@@ -1,4 +1,4 @@
-import { defaultWorkspace, type WorkspaceConfig, workspaceSchema } from "./workspace-schema";
+import { defaultWorkspace, generateWorkspace, type WorkspaceConfig, workspaceSchema } from "./workspace-schema";
 
 const CONFIG_KEY = "projectos.workspace.v1";
 const DATA_KEY = "projectos.data.v1";
@@ -20,7 +20,16 @@ export function readWorkspace(): WorkspaceConfig {
   if (typeof window === "undefined") return defaultWorkspace();
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
-    return raw ? workspaceSchema.parse(JSON.parse(raw)) : defaultWorkspace();
+    if (!raw) return defaultWorkspace();
+    const saved = workspaceSchema.parse(JSON.parse(raw));
+    const tailored = generateWorkspace({ description: saved.originalPrompt ?? saved.description, originalPrompt: saved.originalPrompt });
+    return {
+      ...saved,
+      dashboardKind: saved.dashboardKind ?? tailored?.dashboardKind,
+      headline: saved.headline ?? tailored?.headline,
+      kpis: saved.kpis?.length ? saved.kpis : tailored?.kpis,
+      sections: saved.sections?.length ? saved.sections : tailored?.sections,
+    };
   } catch {
     return defaultWorkspace();
   }

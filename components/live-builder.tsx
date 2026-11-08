@@ -24,7 +24,7 @@ export function LiveBuilder() {
     const timerIds = activity.map((_, index) => window.setTimeout(() => alive && setStep(index), 430 * index));
     const build = async () => {
       try {
-        const response = await fetch("/api/workspace-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description: scopedDescription(session), model: defaultProjectModel }) });
+        const response = await fetch("/api/workspace-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description: scopedDescription(session), originalPrompt: session.brief, model: defaultProjectModel }) });
         const result = await response.json();
         if (!response.ok || !result.config) throw new Error(result.error || "The AI build did not return a workspace plan.");
         window.setTimeout(() => {

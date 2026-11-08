@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Apple, ArrowRight, Check, Code2, Download, LoaderCircle, LockKeyhole, Moon, Send, Sparkles, Sun, WandSparkles, Monitor, Smartphone, Tablet } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Apple, ArrowRight, Check, Code2, Download, LoaderCircle, LockKeyhole, Moon, RotateCcw, Send, Sparkles, Sun, WandSparkles, Monitor, Smartphone, Tablet } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { defaultProjectModel } from "@/lib/project-models";
 import { emptyData, saveData, saveWorkspace } from "@/lib/storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { WorkspaceConfig } from "@/lib/workspace-schema";
 import { ConnectorMenu, ConnectorSuggestion } from "@/components/connector-controls";
 import { detectConnectorRequests, type ConnectorId } from "@/lib/connectors";
+import { WorkspaceMetrics, WorkspaceViews } from "@/components/workspace-blueprint";
 
 type Phase = "idea" | "building" | "ready" | "editing" | "error";
 type PreviewDevice = "desktop" | "iphone" | "ipad";
@@ -47,6 +48,8 @@ export function TrialBuilder() {
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
   const [primaryDevice, setPrimaryDevice] = useState<PreviewDevice>("desktop");
   const [mobilePane, setMobilePane] = useState<MobilePane>("builder");
+  const buildController = useRef<AbortController | null>(null);
+  const buildGeneration = useRef(0);
   const detectedConnectors = detectConnectorRequests(`${request} ${edit}`).filter(connector => !plannedConnectors.includes(connector.id));
 
   useEffect(() => {
@@ -119,17 +122,24 @@ export function TrialBuilder() {
   };
 
   const runBuild = async (description: string, isEdit = false) => {
+    buildController.current?.abort();
+    const generation = ++buildGeneration.current;
+    const controller = new AbortController();
+    buildController.current = controller;
     setLastOperation({ description, isEdit });
     setPhase(isEdit ? "editing" : "building");
     setError("");
     setStep(0);
+    const buildDescription = `${description}\n\nPrimary device: ${primaryDevice}${plannedConnectors.length ? `\n\nApproved connector preferences: ${plannedConnectors.join(", ")}. Add clearly labeled connector-ready areas for these services; do not claim live access unless an authorization is complete.` : ""}`.slice(0, 1500);
     const timers = buildSteps.map((_, index) => window.setTimeout(() => setStep(index), 580 * index));
     try {
       const response = await fetch("/api/workspace-config", {
         method: "POST",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: `${description}\n\nPrimary device: ${primaryDevice}${plannedConnectors.length ? `\n\nApproved connector preferences: ${plannedConnectors.join(", ")}. Add clearly labeled connector-ready areas for these services; do not claim live access unless an authorization is complete.` : ""}`, model: defaultProjectModel, themePreference: theme }),
+        body: JSON.stringify({ description: buildDescription, originalPrompt: request, model: defaultProjectModel, themePreference: theme }),
       });
+      if (generation !== buildGeneration.current) return;
       const result = await response.json();
       if (!response.ok || !result.config) throw new Error(result.error || "Kernova could not complete that build.");
       saveWorkspace(result.config);
@@ -141,10 +151,12 @@ export function TrialBuilder() {
       setStep(buildSteps.length - 1);
       setEdit("");
     } catch (reason) {
+      if (generation !== buildGeneration.current || (reason instanceof DOMException && reason.name === "AbortError")) return;
       setError(reason instanceof Error ? reason.message : "Kernova could not complete that build.");
       setPhase("error");
     } finally {
       timers.forEach(window.clearTimeout);
+      if (generation === buildGeneration.current) buildController.current = null;
     }
   };
 
@@ -169,6 +181,25 @@ export function TrialBuilder() {
     const { data, error: oauthError } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: callbackUrl() } });
     if (oauthError || !data.url) { setAuthLoading(null); setAuthNotice(oauthError?.message || "The sign-in provider did not return a redirect."); return; }
     window.location.assign(data.url);
+  };
+
+  const startOver = () => {
+    buildGeneration.current += 1;
+    buildController.current?.abort();
+    buildController.current = null;
+    setRequest("");
+    setEdit("");
+    setConfig(null);
+    setPhase("idea");
+    setStep(0);
+    setError("");
+    setLastOperation(null);
+    setDashboardId(null);
+    setPlannedConnectors([]);
+    setMobilePane("builder");
+    const phone = window.matchMedia("(max-width: 700px)").matches;
+    setPrimaryDevice(phone ? "iphone" : "desktop");
+    setPreviewDevice(phone ? "iphone" : "desktop");
   };
 
   const startMagicLink = async () => {
@@ -204,14 +235,14 @@ export function TrialBuilder() {
 
       <div className="trial-grid" data-mobile-pane={mobilePane}>
         <section className="trial-console">
-          <div className="trial-panel-head"><span><Code2 size={15} /> Builder conversation</span><small>GPT-6.1 Sol</small></div>
-          {phase === "idea" ? <div className="trial-start"><div className="trial-prompt-orb"><Sparkles size={21} /></div><h2>What should this dashboard make easier?</h2><p>Use plain language. Mention the team, the work, and the decisions that need to happen faster.</p><label className="trial-device-label">Mainly used on</label><div className="trial-device-choice" role="group" aria-label="Choose primary dashboard device">{([ ["desktop", "Desktop", Monitor], ["ipad", "iPad", Tablet], ["iphone", "Mobile", Smartphone] ] as const).map(([id,label,Icon]) => <button type="button" key={id} className={primaryDevice === id ? "selected" : ""} aria-pressed={primaryDevice === id} onClick={() => setPrimaryDevice(id)}><Icon size={15}/>{label}</button>)}</div><textarea value={request} onChange={event => setRequest(event.target.value)} placeholder="Example: I run a lawn-care crew and need jobs, routes, client notes, estimates, and team availability in one place." aria-label="Describe the dashboard you want" /><button className="trial-primary" type="button" onClick={begin} disabled={request.trim().length < 12}>Build my dashboard <ArrowRight size={16} /></button><small className="trial-safe-note">No account required for this first build. Nothing is published or shared.</small></div> : <><div className="trial-activity" aria-live="polite">{buildSteps.map((item, index) => <div className={index <= step ? "complete" : ""} key={item}>{index < step || phase === "ready" ? <Check size={15} /> : index === step && (phase === "building" || phase === "editing") ? <LoaderCircle className="spin" size={15} /> : <i />}{item}</div>)}</div><div className="trial-code" aria-label="Current dashboard manifest"><span>dashboard.ts</span><pre>{config ? JSON.stringify({ name: config.name, layout: config.layout, modules: config.modules }, null, 2) : "Preparing dashboard…"}</pre></div>{phase === "error" && <div className="trial-error"><b>Build paused. Your current preview is unchanged.</b><p>{error}</p><button className="trial-secondary" onClick={() => lastOperation && void runBuild(lastOperation.description, lastOperation.isEdit)} disabled={!lastOperation}>Try the same request again</button></div>}<div className="trial-edit-zone"><div><span>Shape the next version</span><b>{edits}/3 trial changes used</b></div><textarea value={edit} onChange={event => setEdit(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); submitEdit(); } }} placeholder={edits >= 3 ? "Your next change unlocks with a free account" : "e.g. Add a crew map, show overdue estimates first, and make it easier on a phone"} aria-label="Request a dashboard change" /><button className="trial-primary" type="button" onClick={submitEdit} disabled={!edit.trim() || phase === "building" || phase === "editing"}>{edits >= 3 ? <><LockKeyhole size={15} /> Create account to continue</> : <><WandSparkles size={15} /> Apply change</>}</button></div></>}
+          <div className="trial-panel-head"><span><Code2 size={15} /> Builder conversation</span><div className="trial-panel-head-actions">{phase !== "idea" && <button className="trial-start-over" type="button" onClick={startOver}><RotateCcw size={13}/> Start over</button>}<small>GPT-6.1 Sol</small></div></div>
+          {phase === "idea" ? <div className="trial-start"><div className="trial-prompt-orb"><Sparkles size={21} /></div><h2>What should this dashboard make easier?</h2><p>Use plain language. Mention the team, the work, and the decisions that need to happen faster.</p><label className="trial-device-label">Mainly used on</label><div className="trial-device-choice" role="group" aria-label="Choose primary dashboard device">{([ ["desktop", "Desktop", Monitor], ["ipad", "iPad", Tablet], ["iphone", "Mobile", Smartphone] ] as const).map(([id,label,Icon]) => <button type="button" key={id} className={primaryDevice === id ? "selected" : ""} aria-pressed={primaryDevice === id} onClick={() => setPrimaryDevice(id)}><Icon size={15}/>{label}</button>)}</div><textarea maxLength={1500} value={request} onChange={event => setRequest(event.target.value)} placeholder="Example: I run a lawn-care crew and need jobs, routes, client notes, estimates, and team availability in one place." aria-label="Describe the dashboard you want" /><button className="trial-primary" type="button" onClick={begin} disabled={request.trim().length < 12}>Build my dashboard <ArrowRight size={16} /></button><small className="trial-safe-note">No account required for this first build. Nothing is published or shared.</small></div> : <><section className="trial-original-brief"><div><span>Your original prompt</span><small>Kept with this dashboard</small></div><p>{request}</p></section><div className="trial-activity" aria-live="polite">{buildSteps.map((item, index) => <div className={index <= step ? "complete" : ""} key={item}>{index < step || phase === "ready" ? <Check size={15} /> : index === step && (phase === "building" || phase === "editing") ? <LoaderCircle className="spin" size={15} /> : <i />}{item}</div>)}</div><div className="trial-code" aria-label="Current dashboard manifest"><span>dashboard.ts</span><pre>{config ? JSON.stringify({ name: config.name, layout: config.layout, modules: config.modules }, null, 2) : "Preparing dashboard…"}</pre></div>{phase === "error" && <div className="trial-error"><b>Build paused. Your current preview is unchanged.</b><p>{error}</p><button className="trial-secondary" onClick={() => lastOperation && void runBuild(lastOperation.description, lastOperation.isEdit)} disabled={!lastOperation}>Try the same request again</button></div>}<div className="trial-edit-zone"><div><span>Shape the next version</span><b>{edits}/3 trial changes used</b></div><textarea maxLength={1500} value={edit} onChange={event => setEdit(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); submitEdit(); } }} placeholder={edits >= 3 ? "Your next change unlocks with a free account" : "e.g. Add a crew map, show overdue estimates first, and make it easier on a phone"} aria-label="Request a dashboard change" /><button className="trial-primary" type="button" onClick={submitEdit} disabled={!edit.trim() || phase === "building" || phase === "editing"}>{edits >= 3 ? <><LockKeyhole size={15} /> Create account to continue</> : <><WandSparkles size={15} /> Apply change</>}</button></div></>}
           {detectedConnectors.map(connector => <ConnectorSuggestion key={connector.id} connectorId={connector.id} onAdded={added => setPlannedConnectors(current => current.includes(added.id) ? current : [...current, added.id])}/>)}
         </section>
 
         <section className="trial-preview">
           <div className="trial-panel-head"><span><span className="preview-dot" /> Live preview</span><div className="trial-preview-head-actions"><div className="trial-preview-sizes" role="group" aria-label="Preview dashboard size">{([ ["desktop", "Desktop", Monitor], ["iphone", "iPhone 16 Pro", Smartphone], ["ipad", "iPad", Tablet] ] as const).map(([id,label,Icon]) => <button key={id} type="button" aria-pressed={previewDevice === id} className={previewDevice === id ? "selected" : ""} onClick={() => setPreviewDevice(id)}><Icon size={14}/><span>{label}</span></button>)}</div><button type="button" className="locked-export" onClick={() => setAuthOpen(true)}><Download size={14} /> Export <LockKeyhole size={12} /></button></div></div>
-          <div className={`trial-preview-device preview-${previewDevice}`}><div className="trial-preview-screen">{previewDevice === "iphone" && <span className="trial-dynamic-island" aria-hidden="true"/>}{phase === "idea" || phase === "building" || phase === "editing" ? <div className="trial-skeleton" aria-label="Dashboard preview loading"><div className="skeleton-title" /><div className="skeleton-stats"><i /><i /><i /></div><div className="skeleton-board" /><div className="skeleton-lines"><i /><i /><i /></div></div> : config ? <div className="trial-dashboard"><div className="dashboard-preview-top"><div><small>LIVE WORKSPACE</small><h2>{config.name}</h2><p>{config.description}</p></div><span>Today</span></div><div className="dashboard-preview-stats"><article><small>Priority items</small><b>{config.priorities.length}</b><span>Ready to decide</span></article><article><small>Active views</small><b>{config.modules.length}</b><span>Built around your work</span></article></div><section className="dashboard-preview-list"><header><b>What needs attention</b><small>Live view</small></header>{config.priorities.slice(0, 3).map((priority, index) => <div key={priority}><i className={`priority-dot dot-${index}`} /><span>{priority}</span><small>{index === 0 ? "Now" : "Planned"}</small></div>)}</section><div className="dashboard-module-row">{previewCards.map(module => <span key={module}>{module}</span>)}</div></div> : <div className="trial-preview-error"><p>{error || "A dashboard preview will appear here."}</p></div>}</div></div>
+          <div className={`trial-preview-device preview-${previewDevice}`}><div className="trial-preview-screen">{previewDevice === "iphone" && <span className="trial-dynamic-island" aria-hidden="true"/>}{phase === "idea" || phase === "building" || phase === "editing" ? <div className="trial-skeleton" aria-label="Dashboard preview loading"><div className="skeleton-title"/><div className="skeleton-stats"><i/><i/><i/></div><div className="skeleton-board"/><div className="skeleton-lines"><i/><i/><i/></div></div> : config ? <div className={`trial-dashboard dashboard-kind-${config.dashboardKind ?? "general"}`}><div className="dashboard-preview-top"><div><small>YOUR DASHBOARD</small><h2>{config.name}</h2><p>{config.headline ?? config.description}</p></div><span>Plan</span></div><section className="dashboard-source-brief"><small>YOUR ORIGINAL PROMPT</small><p>{config.originalPrompt ?? request}</p></section><WorkspaceMetrics config={config} compact/><WorkspaceViews config={config} compact/><section className="dashboard-preview-list"><header><b>Decisions to keep in view</b><small>From your brief</small></header>{config.priorities.slice(0, 3).map((priority, index) => <div key={priority}><i className={`priority-dot dot-${index}`}/><span>{priority}</span><small>{index === 0 ? "First" : "Next"}</small></div>)}</section><div className="dashboard-module-row">{previewCards.map(module => <span key={module}>{module}</span>)}</div></div> : <div className="trial-preview-error"><p>{error || "A dashboard preview will appear here."}</p></div>}</div></div>
           <div className="export-callout"><LockKeyhole size={17} /><div><b>Export is ready when you are.</b><p>Sign in to save this dashboard, download it, or choose hosting.</p></div><button type="button" onClick={() => setAuthOpen(true)}>Sign in</button></div>
         </section>
       </div>
