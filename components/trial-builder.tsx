@@ -117,7 +117,7 @@ export function TrialBuilder() {
       const response = await fetch("/api/workspace-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: `${description}\n\nPrimary device: ${primaryDevice}`, model: defaultProjectModel, themePreference: theme }),
+        body: JSON.stringify({ description: `${description}\n\nPrimary device: ${primaryDevice}${plannedConnectors.length ? `\n\nApproved connector preferences: ${plannedConnectors.join(", ")}. Add clearly labeled connector-ready areas for these services; do not claim live access unless an authorization is complete.` : ""}`, model: defaultProjectModel, themePreference: theme }),
       });
       const result = await response.json();
       if (!response.ok || !result.config) throw new Error(result.error || "Kernova could not complete that build.");
